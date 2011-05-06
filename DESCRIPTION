@@ -1,0 +1,16 @@
+Package: rrBLUP
+Title: Genomic selection and association analysis
+Version: 1.0
+Date: 2011-05-06
+Author: Jeffrey Endelman <j.endelman@gmail.com>
+Maintainer: Jeffrey Endelman <j.endelman@gmail.com>
+Description: Contains tools for genomics research: a maximum-likelihood
+        algorithm for ridge regression-BLUP (RR.BLUP), a function for
+        genome-wide association analysis (GWA), and a genomic selection
+        algorithm that combines ridge regression and subset selection
+        (RR.BLUP.MR).
+License: GPL-3
+LazyLoad: yes
+Packaged: 2011-05-07 20:28:17 UTC; Jeffrey
+Repository: CRAN
+Date/Publication: 2011-05-08 06:23:22
