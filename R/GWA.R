@@ -36,9 +36,9 @@ stopifnot(nrow(K)==ncol(K))
 stopifnot(nrow(K)==t)
 
 out <- RR.BLUP(y,X=X,Z=Z,K=K)  
-V <- out$Ve*diag(n)+out$Vg * Z%*%K%*%t(Z)
+H <- out$Ve/out$Vg*diag(n)+Z%*%K%*%t(Z)
 
-Vinv <- solve(V)
+Hinv <- solve(H)
 df <- p + 1
 
 scores <- rep(0,m)
@@ -59,12 +59,12 @@ for (i in 1:m) {
   if (rXsnp != df) {
     scores[i] <- 0 
   } else {
-  A <- crossprod(Xsnp,Vinv%*%Xsnp)
-  b <- crossprod(Xsnp,Vinv%*%y)
-  beta <- solve(A,b)
+  A <- crossprod(Xsnp,Hinv%*%Xsnp)
+  Ainv <- solve(A)
+  beta <- Ainv %*% crossprod(Xsnp,Hinv%*%y)
   resid <- y - Xsnp %*% beta
-  s2 <- as.double(crossprod(resid,Vinv%*%resid))/(n-df)
-  CovBeta <- s2*solve(A)
+  s2 <- as.double(crossprod(resid,Hinv%*%resid))/(n-df)
+  CovBeta <- s2*Ainv
   F <- beta[df]^2/CovBeta[df,df]
   pvalue <- 1 - pf(F,1,n-df)
 
