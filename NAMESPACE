@@ -1,0 +1,1 @@
+export(mixed.solve,GWA,kinship.BLUP)

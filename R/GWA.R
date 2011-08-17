@@ -1,30 +1,33 @@
 GWA <-
-function(y,G,Z,X = NULL,K = NULL,min.MAF=0.01,check.rank="FALSE") {
+function(y,G,Z=NULL,X = NULL,K = NULL,min.MAF=0.05,check.rank=FALSE) {
 
 pi <- 3.14159
 AS1 <- c(0.31938,-0.35656,1.78148,-1.82126,1.33027)  #for p-value approximation
 AS2 <- 0.2316419
 
 n <- length(y)
+y <- matrix(y,n,1)
 if (is.null(X)) {
   p <- 1
   X <- matrix(rep(1,n),n,1)
 }
-p <- dim(X)[2]  
+p <- ncol(X)
 if (is.null(p)) {
   p <- 1
   X <- matrix(X,length(X),1)
 }
 rX <- qr(X)$rank
 stopifnot(rX==p)  #must be full rank design matrix
-stopifnot(dim(X)[1]==n)
+stopifnot(nrow(X)==n)
 
-m <- dim(G)[2]  # number of markers
+m <- ncol(G)  # number of markers
 if (is.null(m)) {
   m <- 1
   G <- matrix(G,length(G),1)
 }
 t <- dim(G)[1]
+
+if (is.null(Z)) {Z <- diag(n)}
 
 stopifnot(dim(Z)[1]==n)
 stopifnot(dim(Z)[2]==t)
@@ -35,14 +38,14 @@ if (is.null(K)) {
 stopifnot(nrow(K)==ncol(K))
 stopifnot(nrow(K)==t)
 
-out <- RR.BLUP(y,X=X,Z=Z,K=K)  
-H <- out$Ve/out$Vg*diag(n)+Z%*%K%*%t(Z)
+out <- mixed.solve(y,X=X,Z=Z,K=K)  
+H <- out$Ve/out$Vu*diag(n)+Z%*%K%*%t(Z)
 
 Hinv <- solve(H)
 df <- p + 1
 
 scores <- rep(0,m)
-freq <- colMeans((G+1)/2)
+freq <- colMeans(G+1)/2
 for (i in 1:m) {
   MAF <- min(freq[i],1-freq[i])
   if (MAF < min.MAF) {
@@ -51,7 +54,7 @@ for (i in 1:m) {
 
   Xsnp <- cbind(X,Z%*%G[,i])
 
-  if (check.rank=="TRUE") {
+  if (check.rank==TRUE) {
     rXsnp <- qr(Xsnp)$rank
   } else {
     rXsnp <- df
