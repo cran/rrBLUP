@@ -1,5 +1,8 @@
 GWA <-
-function(y,G,Z=NULL,X = NULL,K = NULL,min.MAF=0.05,check.rank=FALSE) {
+function(y,G,Z=NULL,X = NULL,K=NULL,min.MAF=0.05,check.rank=FALSE) {
+#assumes genotypes on [-1,1] scale
+#missing data not allowed, impute first
+#fractional genotypes OK
 
 pi <- 3.14159
 AS1 <- c(0.31938,-0.35656,1.78148,-1.82126,1.33027)  #for p-value approximation
@@ -16,8 +19,6 @@ if (is.null(p)) {
   p <- 1
   X <- matrix(X,length(X),1)
 }
-rX <- qr(X)$rank
-stopifnot(rX==p)  #must be full rank design matrix
 stopifnot(nrow(X)==n)
 
 m <- ncol(G)  # number of markers
@@ -33,8 +34,9 @@ stopifnot(dim(Z)[1]==n)
 stopifnot(dim(Z)[2]==t)
 
 if (is.null(K)) {
- K <- G%*%t(G)/m
+  K <- G %*% t(G)/m
 }
+
 stopifnot(nrow(K)==ncol(K))
 stopifnot(nrow(K)==t)
 
@@ -51,7 +53,7 @@ for (i in 1:m) {
   if (MAF < min.MAF) {
     scores[i] <- 0
   } else {
-
+  
   Xsnp <- cbind(X,Z%*%G[,i])
 
   if (check.rank==TRUE) {

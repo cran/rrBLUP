@@ -25,7 +25,8 @@ Vector (\eqn{n \times 1}) of observations
 }
   \item{G}{
 Matrix (\eqn{t \times m}) of genotypes for \eqn{t} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}.
+Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}.  Fractional (imputed) alleles are
+allowed.  
 }
   \item{Z}{
 0-1 matrix (\eqn{n \times t}) relating observations to lines. If not passed, the identity matrix
@@ -36,8 +37,7 @@ Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector
 to model the intercept.
 }
   \item{K}{
-Kinship matrix for the population; must be positive semidefinite.  If not passed, 
-\eqn{K = G G'/ m}.
+Kinship matrix for the population; if not passed, the realized relationship matrix \eqn{G G'} is used.
 }
   \item{min.MAF}{
 Specifies the minimum minor allele frequency (MAF).  If a marker has a MAF less than min.MAF,
@@ -49,11 +49,14 @@ which the design matrix is singular are assigned a zero score.
 }
 }
 \details{
-This function uses the iterative, generalized least-squares method of Kang et al. (2010).  
+This function implements the iterative, generalized least-squares method of Kang et al. (2010), using
+\code{\link{mixed.solve}} for variance component estimation.
 
 The use of a minimum MAF is typically adequate to ensure the problem is well-posed.  However,
 if an error message indicates the problem is singular, set check.rank to TRUE.  This will slow 
 down the algorithm but should fix the error.
+
+Missing data are not allowed (\code{\link{impute}} first).
 }
 \value{
 Returns \eqn{m \times 1} vector of the marker scores, which equal \eqn{-log_{10}}(p-value)
@@ -63,13 +66,10 @@ Kang et al. 2010. Variance component model to account for sample structure in ge
 Nat. Genet. 42:348-354.
 }
 
-\seealso{
-\code{\link{mixed.solve}}
-}
 \examples{
-#random population of 500 inbred lines with 1000 markers
-G <- matrix(rep(0,500*1000),500,1000)
-for (i in 1:500) {
+#random population of 200 lines with 1000 markers
+G <- matrix(rep(0,200*1000),200,1000)
+for (i in 1:200) {
   G[i,] <- ifelse(runif(1000)<0.5,-1,1)
 }
 
@@ -78,7 +78,7 @@ u <- rep(0,1000) #marker effects
 u[QTL] <- 1
 g <- crossprod(t(G),u)
 h2 <- 0.5
-y <- g + rnorm(500,mean=0,sd=sqrt((1-h2)/h2*var(g)))
+y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
 scores <- GWA(y=y,G=G)
 }

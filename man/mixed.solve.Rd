@@ -27,7 +27,7 @@ Vector (\eqn{n \times 1}) of observations.
 Design matrix (\eqn{n \times m}) for the random effects.
 }
   \item{K}{
-Covariance matrix (\eqn{m \times m}) for random effects.  Must be positive semidefinite.
+Covariance matrix (\eqn{m \times m}) for random effects; must be positive semi-definite.
 }
   \item{X}{
 Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector of 1's is used
@@ -44,7 +44,11 @@ If TRUE, standard errors are calculated.
 }
 }
 \details{
-This function uses the spectral decomposition algorithm described by Kang et al. (2008).   
+This function can be used to predict marker effects or breeding values (see examples).  The numerical method 
+uses the spectral decomposition of \eqn{Z K Z'} and \eqn{S Z K Z' S}, where \eqn{S = I - X (X' X)^{-1} X'} is 
+the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). Since the computational complexity scales 
+with \eqn{n}, with replicated measurements it is faster to first calculate line means and then use these for \eqn{y}.  
+If the genotypes are unreplicated with respect to environmental factors, these can be modeled as fixed effects.
 }
 \value{
 If SE=FALSE, the function returns a list containing
@@ -70,9 +74,9 @@ Endelman, J.B. (submitted) rrBLUP: An R package for ridge-regression BLUP and re
 }
 
 \examples{
-#random population of 500 inbred lines with 1000 markers
-G <- matrix(rep(0,500*1000),500,1000)
-for (i in 1:500) {
+#random population of 200 lines with 1000 markers
+G <- matrix(rep(0,200*1000),200,1000)
+for (i in 1:200) {
   G[i,] <- ifelse(runif(1000)<0.5,-1,1)
 }
 
@@ -80,11 +84,15 @@ for (i in 1:500) {
 u <- rnorm(1000)
 g <- crossprod(t(G),u)
 h2 <- 0.5  #heritability
-y <- g + rnorm(500,mean=0,sd=sqrt((1-h2)/h2*var(g)))
+y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
 #predict marker effects
 ans <- mixed.solve(y,Z=G,K=diag(1000))
-
 accuracy <- cor(u,ans$u)
+
+#predict breeding values
+ans <- mixed.solve(y,Z=diag(200),K=crossprod(t(G),t(G)))
+accuracy <- cor(g,ans$u)
+
 }
 
