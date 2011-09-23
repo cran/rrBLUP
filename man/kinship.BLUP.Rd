@@ -85,7 +85,7 @@ for (i in 1:200) {
 }
 
 #random phenotypes
-g <- crossprod(t(G),rnorm(1000))
+g <- as.vector(crossprod(t(G),rnorm(1000)))
 h2 <- 0.5 
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 

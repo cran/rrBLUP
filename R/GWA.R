@@ -20,28 +20,27 @@ if (is.null(p)) {
   X <- matrix(X,length(X),1)
 }
 stopifnot(nrow(X)==n)
-
 m <- ncol(G)  # number of markers
 if (is.null(m)) {
   m <- 1
   G <- matrix(G,length(G),1)
 }
-t <- dim(G)[1]
+t <- nrow(G)
 
 if (is.null(Z)) {Z <- diag(n)}
 
-stopifnot(dim(Z)[1]==n)
-stopifnot(dim(Z)[2]==t)
+stopifnot(nrow(Z)==n)
+stopifnot(ncol(Z)==t)
 
 if (is.null(K)) {
-  K <- G %*% t(G)/m
+  K <- tcrossprod(G,G)/m
 }
 
 stopifnot(nrow(K)==ncol(K))
 stopifnot(nrow(K)==t)
 
 out <- mixed.solve(y,X=X,Z=Z,K=K)  
-H <- out$Ve/out$Vu*diag(n)+Z%*%K%*%t(Z)
+H <- out$Ve/out$Vu*diag(n)+tcrossprod(Z%*%K,Z)
 
 Hinv <- solve(H)
 df <- p + 1
@@ -74,7 +73,6 @@ for (i in 1:m) {
   pvalue <- 1 - pf(F,1,n-df)
 
   if (pvalue==0) {
-  # use normal approximation to the t-distribution
   u <- 1/(1+AS2*sqrt(F))
   logp <- (-F/2-log(2*3.14159)/2+log(as.double(crossprod(AS1,c(u,u^2,u^3,u^4,u^5)))))/log(10)
   scores[i] <- -logp

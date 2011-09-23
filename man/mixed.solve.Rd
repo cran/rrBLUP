@@ -27,7 +27,7 @@ Vector (\eqn{n \times 1}) of observations.
 Design matrix (\eqn{n \times m}) for the random effects.
 }
   \item{K}{
-Covariance matrix (\eqn{m \times m}) for random effects; must be positive semi-definite.
+Covariance matrix (\eqn{m \times m}) for random effects; must be positive definite.
 }
   \item{X}{
 Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector of 1's is used
@@ -45,10 +45,8 @@ If TRUE, standard errors are calculated.
 }
 \details{
 This function can be used to predict marker effects or breeding values (see examples).  The numerical method 
-uses the spectral decomposition of \eqn{Z K Z'} and \eqn{S Z K Z' S}, where \eqn{S = I - X (X' X)^{-1} X'} is 
-the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). Since the computational complexity scales 
-with \eqn{n}, with replicated measurements it is faster to first calculate line means and then use these for \eqn{y}.  
-If the genotypes are unreplicated with respect to environmental factors, these can be modeled as fixed effects.
+is based on the spectral decomposition of \eqn{Z K Z'} and \eqn{S Z K Z' S}, where \eqn{S = I - X (X' X)^{-1} X'} is 
+the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). 
 }
 \value{
 If SE=FALSE, the function returns a list containing
@@ -82,7 +80,7 @@ for (i in 1:200) {
 
 #random phenotypes
 u <- rnorm(1000)
-g <- crossprod(t(G),u)
+g <- as.vector(crossprod(t(G),u))
 h2 <- 0.5  #heritability
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
@@ -91,7 +89,7 @@ ans <- mixed.solve(y,Z=G,K=diag(1000))
 accuracy <- cor(u,ans$u)
 
 #predict breeding values
-ans <- mixed.solve(y,Z=diag(200),K=crossprod(t(G),t(G)))
+ans <- mixed.solve(y,Z=diag(200),K=tcrossprod(G,G))
 accuracy <- cor(g,ans$u)
 
 }

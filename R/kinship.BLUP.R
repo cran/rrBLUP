@@ -37,12 +37,11 @@ if (!is.null(G.pred)) {
 }
 
 t <- n.pred + n.train #total number of lines
-
 Z <- cbind(Z.train,matrix(rep(0,n.obs*n.pred),n.obs,n.pred))
 G <- rbind(G.train,G.pred)
 
 if (K.method == "RR") {
-   K <- G %*% t(G)/m
+   K <- tcrossprod(G,G)/m
    soln <- mixed.solve(y=y,X=X,Z=Z,K=K,method=mixed.method)
    if (n.pred > 0) {
      list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta)
@@ -79,7 +78,7 @@ if (K.method == "RR") {
       MarkerList <- ScoreIdx[1:NumMarkers[k]]
       Zaug <- cbind(Z.train[CV.train.obs,CV.train.lines],matrix(rep(0,CV.n.train*CV.n.test),CV.n.train,CV.n.test))
       Gaug <- rbind(G.train[CV.train.lines,MarkerList],G.train[CV.test.lines,MarkerList])
-      soln <- mixed.solve(y[CV.train.obs],X=X[CV.train.obs,],Z=Zaug,K=Gaug%*%t(Gaug)/m,method=mixed.method)
+      soln <- mixed.solve(y[CV.train.obs],X=X[CV.train.obs,],Z=Zaug,K=tcrossprod(Gaug,Gaug)/m,method=mixed.method)
       g.pred <- Z.train[CV.test.obs,CV.test.lines]%*%soln$u[CV.n.train+1:CV.n.test]
       r.gy[k,j] <- cor(g.pred,y[CV.test.obs]-X[CV.test.obs,]%*%soln$beta)
     } #for k
@@ -93,7 +92,7 @@ if (K.method == "RR") {
   ScoreIdx <- sort(Scores,decreasing=TRUE,index.return=TRUE)$ix
   MarkerList <- ScoreIdx[1:opt.n.mark]
   
-  soln <- mixed.solve(y=y,X=X,Z=Z,K=G[,MarkerList]%*%t(G[,MarkerList])/m,method=mixed.method)
+  soln <- mixed.solve(y=y,X=X,Z=Z,K=tcrossprod(G[,MarkerList],G[,MarkerList])/m,method=mixed.method)
 
   if (n.pred > 0) {
     list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta,profile=cbind(NumMarkers,r.gy.mean))

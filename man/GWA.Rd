@@ -76,7 +76,7 @@ for (i in 1:200) {
 QTL <- 100*(1:5) #pick 5 QTL
 u <- rep(0,1000) #marker effects
 u[QTL] <- 1
-g <- crossprod(t(G),u)
+g <- as.vector(crossprod(t(G),u))
 h2 <- 0.5
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
