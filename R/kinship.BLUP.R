@@ -106,7 +106,11 @@ if (K.method == "RR") {
   LL <- rep(0,n.profile)
   soln <- list()
 
-  if (is.null(D)) {D <- distance(G)}
+  if (is.null(D)) {
+	D <- as.matrix(dist(G))/2/sqrt(m)
+  } else {
+	D <- D/max(D)  #normalize to interval [0,1]
+  }
 
   for (i in 1:n.profile) {
     if (K.method == "EXP") {K <- exp(-D/theta[i])} 

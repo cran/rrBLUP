@@ -1,1 +1,1 @@
-export(mixed.solve,impute,GWA,kinship.BLUP,distance)
+export(mixed.solve,impute,GWA,kinship.BLUP)

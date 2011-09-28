@@ -19,7 +19,7 @@ Matrix (\eqn{n \times m}) of unphased genotypes for \eqn{n} lines and \eqn{m} ma
 Number of nearest neighbors to use for imputation.  If not specified, the population mean is used.
 }
   \item{D}{
-Distance matrix (\eqn{n \times n}) between lines.  If not specified, calculated by \code{\link{distance}}(G).
+Distance matrix (\eqn{n \times n}) between lines.  If not specified, calculated by \code{dist}.
 }
 }
 \details{

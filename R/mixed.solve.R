@@ -1,4 +1,4 @@
-mixed.solve <- function (y, Z, K, X = NULL, method = "REML", bounds = c(1e-09,1e+09), SE = FALSE) {
+mixed.solve <- function (y, Z, K = NULL, X = NULL, method = "REML", bounds = c(1e-09,1e+09), SE = FALSE, return.Hinv = FALSE) {
 pi <- 3.14159
 n <- length(y)
 y <- matrix(y,n,1)
@@ -18,8 +18,10 @@ Z <- matrix(Z,length(Z),1)
 }
 stopifnot(nrow(Z) == n)
 stopifnot(nrow(X) == n)
-stopifnot(nrow(K) == m)
-stopifnot(ncol(K) == m)
+if (!is.null(K)) {
+	stopifnot(nrow(K) == m)
+	stopifnot(ncol(K) == m)
+}
 XtX <- crossprod(X, X)
 rank.X <- qr(XtX)$rank
 stopifnot(p == rank.X)
@@ -29,13 +31,17 @@ if (n <= m) {
   spectral.method <- "eigen"
 } else {
   spectral.method <- "cholesky"
-  B <- try(chol(K),silent=TRUE)
-  if (class(B)=="try-error") {
-    stop("Error: K not positive definite.")
-  }
+  if (!is.null(K)) {
+  	B <- try(chol(K),silent=TRUE)
+  	if (class(B)=="try-error") {stop("Error: K not positive definite.")}
+  }	
 }
 if (spectral.method=="cholesky") {
-ZBt <- tcrossprod(Z,B) 
+if (is.null(K)) {
+	ZBt <- Z
+} else {
+	ZBt <- tcrossprod(Z,B) 
+}
 svd.ZBt <- svd(ZBt,nu=n)
 U <- svd.ZBt$u
 phi <- c(svd.ZBt$d^2,rep(0,n-m))
@@ -48,7 +54,11 @@ theta <- c(forwardsolve(t(R^2),svd.SZBt$d^2),rep(0,max(0,n-p-m)))
 } else {
 # spectral.method is "eigen"
 offset <- sqrt(n)
-Hb <- tcrossprod(Z%*%K,Z) + offset*diag(n)
+if (is.null(K)) {
+	Hb <- tcrossprod(Z,Z) + offset*diag(n)
+} else {
+	Hb <- tcrossprod(Z%*%K,Z) + offset*diag(n)
+}
 Hb.system <- eigen(Hb, symmetric = TRUE)
 phi <- Hb.system$values - offset
 min.phi <- min(phi)
@@ -78,20 +88,37 @@ df <- n - p
 } #if method
 Vu.opt <- sum(omega.sq/(theta + lambda.opt))/df
 Ve.opt <- lambda.opt * Vu.opt
-UtX <- crossprod(U,X)
-W <- crossprod(UtX,UtX/(phi+lambda.opt))
-beta <- solve(W,crossprod(UtX,crossprod(U,y)/(phi+lambda.opt)))
-C <- K %*% crossprod(Z,U)
-u <-  C %*% (crossprod(U,(y - X %*% beta))/(phi+lambda.opt))	    
-LL = -0.5 * (soln$objective + df + df * log(2 * pi/df))
-if (SE == FALSE) {
-list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL)
+Hinv <- U %*% (t(U)/(phi+lambda.opt))
+W <- crossprod(X,Hinv%*%X)
+beta <- solve(W,crossprod(X,Hinv%*%y))
+if (is.null(K)) {
+	KZt <- t(Z)
 } else {
-beta.var <- Vu.opt * solve(W)
-beta.SE <- sqrt(diag(beta.var))
-WW <- tcrossprod(C%*%D,C)
-WWW <- C%*%(UtX/(phi+lambda.opt))
-u.SE <- sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%beta.var,WWW))))
-list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL)
+	KZt <- tcrossprod(K,Z)
+}
+KZt.Hinv <- KZt %*% Hinv
+u <- KZt.Hinv %*% (y - X%*%beta)
+LL = -0.5 * (soln$objective + df + df * log(2 * pi/df))
+if (!SE) {
+  if (return.Hinv) {
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL, Hinv = Hinv)
+  } else {
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL)
+  }
+} else {
+  beta.var <- Vu.opt * solve(W)
+  beta.SE <- sqrt(diag(beta.var))
+  WW <- tcrossprod(KZt.Hinv,KZt)
+  WWW <- KZt.Hinv%*%X
+  if (is.null(K)) {
+	u.SE <- sqrt(Vu.opt * (rep(1,m) - diag(WW) + diag(tcrossprod(WWW%*%beta.var,WWW))))	
+  } else {
+	u.SE <- sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%beta.var,WWW))))
+  }
+  if (return.Hinv) {
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL, Hinv = Hinv)
+  } else {
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL)
+  }
 }
 }

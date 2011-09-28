@@ -39,10 +39,8 @@ if (is.null(K)) {
 stopifnot(nrow(K)==ncol(K))
 stopifnot(nrow(K)==t)
 
-out <- mixed.solve(y,X=X,Z=Z,K=K)  
-H <- out$Ve/out$Vu*diag(n)+tcrossprod(Z%*%K,Z)
-
-Hinv <- solve(H)
+out <- mixed.solve(y,X=X,Z=Z,K=K,return.Hinv=TRUE)  
+Hinv <- out$Hinv
 df <- p + 1
 
 scores <- rep(0,m)

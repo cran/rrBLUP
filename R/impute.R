@@ -14,12 +14,12 @@ if (toupper(n.neighbor) == "ALL") {
 		G[i,missing] <- pop.mean[missing]
 	}
 } else {
-	if (is.null(D)) {D <- distance(G)}
+	if (is.null(D)) {D <- as.matrix(dist(G))}
 	
 	for (i in 1:n) {
 		neighbors <- sort(D[i,-i],index.return=TRUE)$ix[1:n.neighbor]
   		missing <- which(is.na(G[i,]))
-		G[i,missing] <- apply(G[neighbors,missing],2,mean.rmNA)
+		G[i,missing] <- apply(matrix(G[neighbors,missing],n.neighbor,length(missing)),2,mean.rmNA)
 	}
 }
 if (length(which(is.nan(G))) > 0) {stop("Use more neighbors.")}

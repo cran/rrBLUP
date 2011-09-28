@@ -33,7 +33,8 @@ to model the intercept.
 the identity matrix is used.
 }
  \item{D}{
-An \eqn{(n.train + n.test) \times (n.train + n.test)} matrix of genotypic distances. 
+An \eqn{(n.train + n.test) \times (n.train + n.test)} matrix of genotypic distances, normalized to the interval
+[0,1]. If not passed, generated using \code{dist}.
 }
   \item{K.method}{
 Method for the kinship matrix: "RR" (default) is ridge regression (\eqn{K = G G'/m}), "GAUSS" uses a 
@@ -53,7 +54,8 @@ Either "REML" (default) or "ML".
 Missing alleles (NA) are not allowed when K.method = "RR" or "MR" (\code{\link{impute}} first).  
 
 The efficiency of repeated calls to kinship.BLUP (e.g., in cross-validation) for methods "GAUSS" or "EXP" can be improved 
-by making a single call to \code{\link{distance}} and then passing appropriate rearrangements of the distance matrix (see example below).
+by making a single call to \code{dist} and then passing appropriate rearrangements of the distance matrix, e.g., 
+D[c(train,pred),c(train,pred)].
 }
 \value{
 \describe{
@@ -71,7 +73,7 @@ When K.method = "MR", function also returns
 }
 }
 \references{
-Endelman, J.B. (submitted) rrBLUP: An R package for ridge regression-BLUP and related genomic selection methods.
+Endelman, J.B. (submitted) rrBLUP: An R package for ridge regression and kernel methods for genomic selection.
 }
 
 \seealso{
@@ -89,13 +91,10 @@ g <- as.vector(crossprod(t(G),rnorm(1000)))
 h2 <- 0.5 
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
-D <- distance(G) 
-
 #split in half for training and prediction
 train <- 1:100
 pred <- 1:100
-ans <- kinship.BLUP(y=y[train],G.train=G[train,],G.pred=G[pred,],
-       D=D[c(train,pred),c(train,pred)],K.method="RR")
+ans <- kinship.BLUP(y=y[train],G.train=G[train,],G.pred=G[pred,],K.method="GAUSS")
 
 #correlation accuracy
 r.gy <- cor(ans$g.pred,y[pred])

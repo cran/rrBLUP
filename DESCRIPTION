@@ -1,15 +1,15 @@
 Package: rrBLUP
-Title: Ridge regression-BLUP and related methods for genomic selection
-Version: 1.7
+Title: Ridge Regression and kernel methods for genomic selection
+Version: 1.8
 Author: Jeffrey Endelman
 Maintainer: Jeffrey Endelman <j.endelman@gmail.com>
 Description: One application is to estimate marker effects by ridge
         regression; alternatively, BLUPs can be calculated based on
-        kinship to a training population.  Kinship options include the
-        realized relationship matrix, Gaussian and exponential spatial
-        models.
+        kinship.  The genetic correlation between lines can be modeled
+        using a marker-based, additive relationship matrix, or via
+        Gaussian and exponential kernel models.
 License: GPL-3
 LazyLoad: yes
-Packaged: 2011-09-23 13:26:27 UTC; Jeffrey
+Packaged: 2011-09-28 19:42:18 UTC; Jeffrey
 Repository: CRAN
-Date/Publication: 2011-09-23 15:01:37
+Date/Publication: 2011-09-29 11:28:18
