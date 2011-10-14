@@ -1,10 +1,10 @@
-37675d93d74fe57bc1bacc2723bc1095 *DESCRIPTION
+7af1f4caf6c3c81eb07a8b2008636908 *DESCRIPTION
 d8b658bc9e3390e6e6d0539c702e4597 *NAMESPACE
 ed40c1ee328c5c1a360f8f19e1c3da6f *R/GWA.R
 1eb18cf7496f7a40675c50be85207f5b *R/impute.R
-0228a2e0f098e5db1871fc3cc537cbef *R/kinship.BLUP.R
-6d76d46050d00fde12ac5834e09cfd1e *R/mixed.solve.R
+12d0dfead32ae78381bb56fe1b09573e *R/kinship.BLUP.R
+58a7f4eea932326f53e2e339141ab8d1 *R/mixed.solve.R
 be5fbfb20ec993da916e34e007aabbe0 *man/GWA.Rd
 5f2221a320a663d862e94a88b6b6f8db *man/impute.Rd
-a533f1229fec72da58a96d8a89b40859 *man/kinship.BLUP.Rd
-b5e0d923c50d0a9cd1dc86716b98b2ce *man/mixed.solve.Rd
+d54199efda6d19e1581779c7d67bf109 *man/kinship.BLUP.Rd
+d2caa6d5a48964c20402e331c59807dd *man/mixed.solve.Rd

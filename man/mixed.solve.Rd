@@ -27,8 +27,8 @@ Vector (\eqn{n \times 1}) of observations.
 Design matrix (\eqn{n \times m}) for the random effects.
 }
   \item{K}{
-Covariance matrix (\eqn{m \times m}) for random effects; must be positive definite.  If not passed, assumed
-to be the identity matrix.
+Covariance matrix (\eqn{m \times m}) for random effects; must be positive semi-definite.  If not passed, assumed to 
+be the identity matrix.
 }
   \item{X}{
 Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector of 1's is used
@@ -50,10 +50,8 @@ If TRUE, the function returns the inverse of \eqn{H = Z K Z' + \lambda I}.  This
 \details{
 This function can be used to predict marker effects or breeding values (see examples).  The numerical method 
 is based on the spectral decomposition of \eqn{Z K Z'} and \eqn{S Z K Z' S}, where \eqn{S = I - X (X' X)^{-1} X'} is 
-the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). With replicated measurements it is faster 
-to first calculate line means and then use these for \eqn{y}.  If the genotypes are unreplicated with respect to 
-environmental factors, these can be modeled as fixed effects.  For marker effects where K = I, the function will run faster 
-if K is not passed than if the user passes the identity matrix.
+the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). For marker effects where K = I, the function 
+will run faster if K is not passed than if the user passes the identity matrix.
 }
 \value{
 If SE=FALSE, the function returns a list containing
@@ -61,7 +59,7 @@ If SE=FALSE, the function returns a list containing
 \item{$Vu}{estimator for \eqn{\sigma^2_u}}
 \item{$Ve}{estimator for \eqn{\sigma^2_e}}
 \item{$beta}{estimator for \eqn{\beta}}
-\item{$u}{BLUP solution for \eqn{u}}
+\item{$u}{BLUP(\eqn{u})}
 \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
 }
 
@@ -80,7 +78,7 @@ If return.Hinv=TRUE, the list also contains
 Kang et al. 2008. Efficient control of population structure in model organism association mapping. 
 Genetics 178:1709-1723.
 
-Endelman, J.B. (submitted) rrBLUP: An R package for ridge regression and kernel methods for genomic selection.
+Endelman, J.B. (in press) Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome.
 }
 
 \examples{

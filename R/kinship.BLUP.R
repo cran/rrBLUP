@@ -1,4 +1,4 @@
-kinship.BLUP <- function(y,G.train,G.pred=NULL,X=NULL,Z.train=NULL,D=NULL,K.method="RR",n.profile=10,mixed.method="REML") {
+kinship.BLUP <- function(y,G.train,G.pred=NULL,X=NULL,Z.train=NULL,K.method="RR",n.profile=10,mixed.method="REML") {
 #assumes genotypes coded on [-1,1] scale
 #continuous values OK
 
@@ -48,70 +48,15 @@ if (K.method == "RR") {
    } else {
      list(g.train=soln$u[1:n.train],beta=soln$beta)
    }
-} else if (K.method == "MR") {
-  #Partition lines in training set for cross-validation
-  n.fold <- 5
-  sets <- rep(0,n.train)
-  ix <- sort(runif(n.train),index.return=TRUE)$ix
-  SetSize <- floor(n.train/n.fold)
-  for (k in 1:(n.fold-1)) {sets[ix[((k-1)*SetSize+1):(k*SetSize)]] <- k}
-  sets[ix[((n.fold-1)*SetSize+1):n.train]] <- n.fold
-
-  NumMarkers <- round(exp(seq(log(10),log(m),length.out=n.profile)))
-
-  r.gy <- matrix(rep(0,n.fold*n.profile),n.profile,n.fold)
-  for (j in 1:n.fold) {
-    CV.test.lines <- which(sets==j)
-    CV.train.lines <- setdiff(1:n.train,CV.test.lines)
-    CV.test.obs <- NULL
-    for (line in CV.test.lines) {
-       CV.test.obs <- union(CV.test.obs,which(Z.train[,line]==1))
-    }
-    CV.train.obs <- setdiff(1:n.obs,CV.test.obs)
-    CV.n.train <- length(CV.train.obs)
-    CV.n.test <- length(CV.test.obs)
-
-    Scores <- GWA(y=y[CV.train.obs],X=X[CV.train.obs,],Z=Z.train[CV.train.obs,CV.train.lines],G=G.train[CV.train.lines,])
-    ScoreIdx <- sort(Scores,decreasing=TRUE,index.return=TRUE)$ix
-
-    for (k in 1:n.profile) {
-      MarkerList <- ScoreIdx[1:NumMarkers[k]]
-      Zaug <- cbind(Z.train[CV.train.obs,CV.train.lines],matrix(rep(0,CV.n.train*CV.n.test),CV.n.train,CV.n.test))
-      Gaug <- rbind(G.train[CV.train.lines,MarkerList],G.train[CV.test.lines,MarkerList])
-      soln <- mixed.solve(y[CV.train.obs],X=X[CV.train.obs,],Z=Zaug,K=tcrossprod(Gaug,Gaug)/m,method=mixed.method)
-      g.pred <- Z.train[CV.test.obs,CV.test.lines]%*%soln$u[CV.n.train+1:CV.n.test]
-      r.gy[k,j] <- cor(g.pred,y[CV.test.obs]-X[CV.test.obs,]%*%soln$beta)
-    } #for k
-  } #for j
-
-  #find CV maximum
-  r.gy.mean <- rowMeans(r.gy)
-  opt.n.mark <- NumMarkers[which.max(r.gy.mean)]
-
-  Scores <- GWA(y=y,X=X,Z=Z.train,G=G.train)
-  ScoreIdx <- sort(Scores,decreasing=TRUE,index.return=TRUE)$ix
-  MarkerList <- ScoreIdx[1:opt.n.mark]
-  
-  soln <- mixed.solve(y=y,X=X,Z=Z,K=tcrossprod(G[,MarkerList],G[,MarkerList])/m,method=mixed.method)
-
-  if (n.pred > 0) {
-    list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta,profile=cbind(NumMarkers,r.gy.mean))
-  } else {
-    list(g.train=soln$u[1:n.train],beta=soln$beta,profile=cbind(NumMarkers,r.gy.mean))
-  }
-
 } else {
+  if ((K.method != "EXP")&(K.method != "GAUSS")) {stop("Invalid K.method")}
   # "exp" or "gauss"
   theta <- setdiff(seq(0,1,length.out=n.profile+1),0)
   LL <- rep(0,n.profile)
   soln <- list()
 
-  if (is.null(D)) {
-	D <- as.matrix(dist(G))/2/sqrt(m)
-  } else {
-	D <- D/max(D)  #normalize to interval [0,1]
-  }
-
+  D <- as.matrix(dist(G))/2/sqrt(m)
+  
   for (i in 1:n.profile) {
     if (K.method == "EXP") {K <- exp(-D/theta[i])} 
     if (K.method == "GAUSS") {K <- exp(-(D/theta[i])^2) }

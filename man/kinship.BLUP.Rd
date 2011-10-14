@@ -9,7 +9,7 @@ This function uses \code{\link{mixed.solve}} for genomic prediction based on the
 }
 \usage{
 kinship.BLUP(y, G.train, G.pred=NULL, X=NULL, Z.train=NULL, 
-        D = NULL, K.method="RR", n.profile=10, mixed.method="REML")
+             K.method="RR", n.profile=10, mixed.method="REML")
 }
 
 \arguments{
@@ -32,30 +32,20 @@ to model the intercept.
 0-1 matrix (\eqn{n.obs \times n.train}) relating observations to lines in the training set.  If not passed
 the identity matrix is used.
 }
- \item{D}{
-An \eqn{(n.train + n.test) \times (n.train + n.test)} matrix of genotypic distances, normalized to the interval
-[0,1]. If not passed, generated using \code{dist}.
-}
-  \item{K.method}{
-Method for the kinship matrix: "RR" (default) is ridge regression (\eqn{K = G G'/m}), "GAUSS" uses a 
-Gaussian spatial model (\eqn{K = e^{-D^2/a^2}}), "EXP" uses an exponential spatial model (\eqn{K = e^{-D/a}}), 
-and "MR" is a marker reduction procedure based on association analysis (\code{\link{GWA}}).
+   \item{K.method}{
+"RR" (default) is ridge regression (\eqn{K = G G'/m}), "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and 
+"EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are calculated with \code{dist}.
 }
  
   \item{n.profile}{
-For K.method = "GAUSS" or "EXP", the number of points to use in the log-likelihood profile for the scale parameter \eqn{a}.
-For K.method = "MR", the number of reduced models in the cross-validation accuracy profile.  
+For K.method = "GAUSS" or "EXP", the number of points to use in the log-likelihood profile for the scale parameter \eqn{\theta}.
 }
   \item{mixed.method}{
 Either "REML" (default) or "ML".
 }
 }
 \details{
-Missing alleles (NA) are not allowed when K.method = "RR" or "MR" (\code{\link{impute}} first).  
-
-The efficiency of repeated calls to kinship.BLUP (e.g., in cross-validation) for methods "GAUSS" or "EXP" can be improved 
-by making a single call to \code{dist} and then passing appropriate rearrangements of the distance matrix, e.g., 
-D[c(train,pred),c(train,pred)].
+Missing alleles (NA) are permitted with GAUSS and EXP but not with RR (\code{\link{impute}} first).
 }
 \value{
 \describe{
@@ -63,17 +53,13 @@ D[c(train,pred),c(train,pred)].
 \item{$g.pred}{BLUP solution for the prediction set (when G.pred != NULL)}
 \item{$beta}{ML estimate of fixed effects}
 }
-When K.method = "GAUSS" or "EXP", function also returns
+For GAUSS or EXP, function also returns
 \describe{
 \item{$profile}{log-likelihood profile for the scale parameter}
 }
-When K.method = "MR", function also returns
-\describe{
-\item{$profile}{cross-validation accuracy of the reduced models}
-}
 }
 \references{
-Endelman, J.B. (submitted) rrBLUP: An R package for ridge regression and kernel methods for genomic selection.
+Endelman, J.B. (in press) Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome.
 }
 
 \seealso{

@@ -33,9 +33,22 @@ if (n <= m) {
   spectral.method <- "cholesky"
   if (!is.null(K)) {
   	B <- try(chol(K),silent=TRUE)
-  	if (class(B)=="try-error") {stop("Error: K not positive definite.")}
-  }	
-}
+  	if (class(B)=="try-error") {
+         # K not positive definite
+         eig.K <- eigen(K,symmetric=TRUE)
+         if (min(eig.K$values) < -1e-6) {
+           stop("K not positive semi-definite")
+         } else {
+         # use pivoting
+         options(warn=-1) #disable warning
+         B <- chol(K,pivot=TRUE)
+         options(warn=0)
+         pivot <- attr(B,"pivot")         
+         B <- B[,order(pivot)]         
+         } #if min(eig.K)
+     } #if class(B)
+  } # if is.null
+} 
 if (spectral.method=="cholesky") {
 if (is.null(K)) {
 	ZBt <- Z
@@ -61,8 +74,7 @@ if (is.null(K)) {
 }
 Hb.system <- eigen(Hb, symmetric = TRUE)
 phi <- Hb.system$values - offset
-min.phi <- min(phi)
-if (min.phi < -1e-6) {stop("Error: K is not positive semi-definite.")}
+if (min(phi) < -1e-6) {stop("K not positive semi-definite.")}
 U <- Hb.system$vectors
 SHbS <- S %*% Hb %*% S
 SHbS.system <- eigen(SHbS, symmetric = TRUE)
