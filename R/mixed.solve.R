@@ -118,14 +118,14 @@ if (!SE) {
     list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL)
   }
 } else {
-  beta.var <- Vu.opt * solve(W)
-  beta.SE <- sqrt(diag(beta.var))
+  Winv <- solve(W)
+  beta.SE <- sqrt(Vu.opt*diag(Winv))
   WW <- tcrossprod(KZt.Hinv,KZt)
   WWW <- KZt.Hinv%*%X
   if (is.null(K)) {
-	u.SE <- sqrt(Vu.opt * (rep(1,m) - diag(WW) + diag(tcrossprod(WWW%*%beta.var,WWW))))	
+	u.SE <- sqrt(Vu.opt * (rep(1,m) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW))))	
   } else {
-	u.SE <- sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%beta.var,WWW))))
+	u.SE <- sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW))))
   }
   if (return.Hinv) {
     list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL, Hinv = Hinv)
