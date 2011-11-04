@@ -27,7 +27,7 @@ rank.X <- qr(XtX)$rank
 stopifnot(p == rank.X)
 XtXinv <- solve(XtX)
 S <- diag(n) - tcrossprod(X%*%XtXinv,X)
-if (n <= m) {
+if (n <= m + p) {
   spectral.method <- "eigen"
 } else {
   spectral.method <- "cholesky"
@@ -62,8 +62,8 @@ SZBt <- S %*% ZBt
 svd.SZBt <- svd(SZBt)
 QR <- qr(cbind(X,svd.SZBt$u))
 Q <- qr.Q(QR,complete=TRUE)[,(p+1):n]
-R <- qr.R(QR)[(p+1):min(m+p,n),(p+1):(m+p)]
-theta <- c(forwardsolve(t(R^2),svd.SZBt$d^2),rep(0,max(0,n-p-m)))
+R <- qr.R(QR)[p+1:m,p+1:m]
+theta <- c(forwardsolve(t(R^2),svd.SZBt$d^2),rep(0,n-p-m))
 } else {
 # spectral.method is "eigen"
 offset <- sqrt(n)
