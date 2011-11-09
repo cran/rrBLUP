@@ -1,1 +1,2 @@
-export(mixed.solve,impute,GWA,kinship.BLUP)
+importFrom(MASS,mvrnorm)
+export(mixed.solve,impute,GWA,kinship.BLUP,A.mat)
