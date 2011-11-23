@@ -1,0 +1,12 @@
+citHeader("To cite the rrBLUP package in publications use:")
+
+citEntry(entry="Article",
+	title="Ridge regression and other kernels for genomic selection with R package rrBLUP",
+	author=as.person("J. B. Endelman"),
+	journal="Plant Genome",
+	year=2011,
+	volume=4,
+	pages="250-255",
+textVersion=paste("Endelman, J.B. 2011. Ridge regression and other kernels",
+"for genomic selection with R package rrBLUP. Plant Genome 4:250-255.")
+)

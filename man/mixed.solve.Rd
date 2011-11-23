@@ -78,7 +78,7 @@ If return.Hinv=TRUE, the list also contains
 Kang et al. 2008. Efficient control of population structure in model organism association mapping. 
 Genetics 178:1709-1723.
 
-Endelman, J.B. (in press) Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome.
+Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255.
 }
 
 \examples{
