@@ -14,15 +14,15 @@ kinship.BLUP(y, G.train, G.pred=NULL, X=NULL, Z.train=NULL,
 
 \arguments{
   \item{y}{
-Vector (\eqn{n.obs \times 1}) of observations
+Vector (\eqn{n.obs \times 1}) of observations.  Missing values (NA) are omitted (see \code{\link{mixed.solve}}).
 }
   \item{G.train}{
 Matrix (\eqn{n.train \times m}) of unphased genotypes for the training population: \eqn{n.train} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) alleles are allowed.  
+Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) and missing (NA) alleles are allowed.  
 }
   \item{G.pred}{
 Matrix (\eqn{n.pred \times m}) of unphased genotypes for the prediction population: \eqn{n.pred} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) alleles are allowed.  
+Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) and missing (NA) alleles are allowed.  
 }
   \item{X}{
 Design matrix (\eqn{n.obs \times p}) of fixed effects.  If not passed, a vector of 1's is used 
@@ -33,8 +33,7 @@ to model the intercept.
 the identity matrix is used.
 }
    \item{K.method}{
-"RR" (default) is ridge regression (\eqn{K = G G'/m}), "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and 
-"EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are calculated with \code{dist}.
+"RR" (default) is ridge regression, for which K is the identity-by-state additive relationship matrix computed with \code{\link{A.mat}}.  The option "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and "EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are computed with \code{\link{dist}}.
 }
  
   \item{n.profile}{
@@ -43,9 +42,6 @@ For K.method = "GAUSS" or "EXP", the number of points to use in the log-likeliho
   \item{mixed.method}{
 Either "REML" (default) or "ML".
 }
-}
-\details{
-Missing alleles (NA) are permitted with GAUSS and EXP but not with RR (\code{\link{impute}} first).
 }
 \value{
 \describe{
@@ -79,7 +75,7 @@ y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
 #split in half for training and prediction
 train <- 1:100
-pred <- 1:100
+pred <- 101:200
 ans <- kinship.BLUP(y=y[train],G.train=G[train,],G.pred=G[pred,],K.method="GAUSS")
 
 #correlation accuracy

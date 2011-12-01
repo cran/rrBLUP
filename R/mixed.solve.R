@@ -1,7 +1,10 @@
-mixed.solve <- function (y, Z, K = NULL, X = NULL, method = "REML", bounds = c(1e-09,1e+09), SE = FALSE, return.Hinv = FALSE) {
+mixed.solve <- function (y, Z = NULL, K = NULL, X = NULL, method = "REML", bounds = c(1e-09,1e+09), SE = FALSE, return.Hinv = FALSE) {
 pi <- 3.14159
 n <- length(y)
 y <- matrix(y,n,1)
+
+not.NA <- which(!is.na(y))
+
 if (is.null(X)) {
 p <- 1
 X <- matrix(rep(1,n),n,1)
@@ -10,6 +13,9 @@ p <- ncol(X)
 if (is.null(p)) {
 p <- 1
 X <- matrix(X,length(X),1)
+}
+if (is.null(Z)) {
+Z <- diag(n)
 }
 m <- ncol(Z)
 if (is.null(m)) {
@@ -22,6 +28,12 @@ if (!is.null(K)) {
 	stopifnot(nrow(K) == m)
 	stopifnot(ncol(K) == m)
 }
+
+Z <- Z[not.NA,]
+X <- X[not.NA,]
+n <- length(not.NA)
+y <- matrix(y[not.NA],n,1)
+
 XtX <- crossprod(X, X)
 rank.X <- qr(XtX)$rank
 stopifnot(p == rank.X)

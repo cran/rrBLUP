@@ -15,16 +15,16 @@ of mixed models, in which there is a single variance component other than the re
 has a close relationship with ridge regression (ridge parameter \eqn{\lambda = \sigma_e^2 / \sigma^2_u}).
 }
 \usage{
-mixed.solve(y, Z, K=NULL, X=NULL, method="REML", 
+mixed.solve(y, Z=NULL, K=NULL, X=NULL, method="REML", 
         bounds=c(1e-09, 1e+09), SE=FALSE, return.Hinv=FALSE)
 }
 
 \arguments{
   \item{y}{
-Vector (\eqn{n \times 1}) of observations.
+Vector (\eqn{n \times 1}) of observations.  Missing values (NA) are omitted, along with the corresponding rows of X and Z. 
 }
   \item{Z}{
-Design matrix (\eqn{n \times m}) for the random effects.
+Design matrix (\eqn{n \times m}) for the random effects.  If not passed, assumed to be the identity matrix.
 }
   \item{K}{
 Covariance matrix (\eqn{m \times m}) for random effects; must be positive semi-definite.  If not passed, assumed to 
@@ -99,7 +99,7 @@ ans <- mixed.solve(y,Z=G)  #By default K = I
 accuracy <- cor(u,ans$u)
 
 #predict breeding values
-ans <- mixed.solve(y,Z=diag(200),K=tcrossprod(G,G))
+ans <- mixed.solve(y,K=A.mat(G))
 accuracy <- cor(g,ans$u)
 
 }

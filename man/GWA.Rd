@@ -21,7 +21,7 @@ GWA(y, G, Z=NULL, X=NULL, K=NULL, min.MAF=0.05,
 
 \arguments{
   \item{y}{
-Vector (\eqn{n \times 1}) of observations
+Vector (\eqn{n \times 1}) of observations.  Missing values (NA) are omitted.
 }
   \item{G}{
 Matrix (\eqn{t \times m}) of genotypes for \eqn{t} lines with \eqn{m} bi-allelic markers.
@@ -56,7 +56,7 @@ The use of a minimum MAF is typically adequate to ensure the problem is well-pos
 if an error message indicates the problem is singular, set check.rank to TRUE.  This will slow 
 down the algorithm but should fix the error.
 
-Missing data are not allowed (\code{\link{impute}} first).
+Missing marker data are not allowed (\code{\link{impute}} first).
 }
 \value{
 Returns \eqn{m \times 1} vector of the marker scores, which equal \eqn{-log_{10}}(p-value)
