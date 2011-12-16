@@ -1,2 +1,2 @@
-importFrom(Matrix,nearPD)
+import(Matrix)
 export(mixed.solve,impute,GWA,kinship.BLUP,A.mat)

@@ -1,0 +1,14 @@
+Changes in 2.8:
+
+* Added NEWS file
+* Updated A.mat to calculate both the raw and adjusted UAR models.
+
+Changes in 2.7:
+
+* Updated mixed.solve to handle missing observations.
+* Updated A.mat to handle missing alleles.
+
+Changes in 2.5:
+
+* rrBLUP manuscript is published.  Included CITATION file.
+
