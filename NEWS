@@ -1,3 +1,7 @@
+Changes in 3.1:
+
+* Fixed error in regression coefficient for adjusted A.mat.
+
 Changes in 3.0:
 
 * Major changes to A.mat.  Read the help manual.

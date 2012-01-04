@@ -28,6 +28,10 @@ A.mat <- function(G,min.MAF=0.01,n.adj=0,PD=TRUE) {
         }        
     } #raw.UAR
     
+    b.yx <- function(y,x) {
+    #formula for regression without intercept
+        sum(y*x)/sum(x^2)
+    }
     
 	n <- nrow(G)
     m <- ncol(G)
@@ -47,7 +51,7 @@ A.mat <- function(G,min.MAF=0.01,n.adj=0,PD=TRUE) {
             obs.marker <- ix[(n.causal+1):m]
             A.causal <- raw.UAR(G[,causal.marker],missing=missing,min.MAF=min.MAF)
             A.obs <- raw.UAR(G[,obs.marker],missing=missing,min.MAF=min.MAF)
-            beta[i] <- cov(as.vector(A.causal-diag(n)),as.vector(A.obs-diag(n)))/var(as.vector(A.obs-diag(n)))     
+            beta[i] <- b.yx(as.vector(A.causal-diag(n)),as.vector(A.obs-diag(n)))
         }
         A <- mean(beta)*A.raw + (1-mean(beta))*diag(n)
     }
