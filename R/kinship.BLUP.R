@@ -41,7 +41,7 @@ Z <- cbind(Z.train,matrix(rep(0,n.obs*n.pred),n.obs,n.pred))
 G <- rbind(G.train,G.pred)
 
 if (K.method == "RR") {
-   K <- A.mat(G,min.MAF=0)
+   K <- A.mat(G)
    soln <- mixed.solve(y=y,X=X,Z=Z,K=K,method=mixed.method)
    if (n.pred > 0) {
      list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta)

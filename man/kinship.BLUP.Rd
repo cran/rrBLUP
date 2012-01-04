@@ -33,7 +33,7 @@ to model the intercept.
 the identity matrix is used.
 }
    \item{K.method}{
-"RR" (default) is ridge regression, for which K is the identity-by-state additive relationship matrix computed with \code{\link{A.mat}}.  The option "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and "EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are computed with \code{\link{dist}}.
+"RR" (default) is ridge regression, for which K is the realized additive relationship matrix computed with \code{\link{A.mat}}.  The option "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and "EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are computed with \code{\link{dist}}.
 }
  
   \item{n.profile}{
