@@ -1,5 +1,5 @@
 GWA <-
-function(y,G,Z=NULL,X = NULL,K=NULL,min.MAF=0.05,check.rank=FALSE) {
+function(y,G,Z=NULL,X = NULL,min.MAF=0.05,n.core=1,check.rank=FALSE) {
 #assumes genotypes on [-1,1] scale
 #missing data not allowed, impute first
 #fractional genotypes OK
@@ -10,6 +10,8 @@ AS2 <- 0.2316419
 
 n <- length(y)
 y <- matrix(y,n,1)
+not.NA <- which(!is.na(y))
+
 if (is.null(X)) {
   p <- 1
   X <- matrix(rep(1,n),n,1)
@@ -25,50 +27,63 @@ if (is.null(m)) {
   m <- 1
   G <- matrix(G,length(G),1)
 }
-t <- nrow(G)
-
+n.line <- nrow(G)
 if (is.null(Z)) {Z <- diag(n)}
-
 stopifnot(nrow(Z)==n)
-stopifnot(ncol(Z)==t)
+stopifnot(ncol(Z)==n.line)
 
-if (is.null(K)) {
-  K <- tcrossprod(G,G)/m
-}
-
-stopifnot(nrow(K)==ncol(K))
-stopifnot(nrow(K)==t)
-
-out <- mixed.solve(y,X=X,Z=Z,K=K,return.Hinv=TRUE)  
-Hinv <- out$Hinv
+Z <- Z[not.NA,]
+X <- X[not.NA,]
+n <- length(not.NA)
+y <- matrix(y[not.NA],n,1)
+Hinv <- mixed.solve(y,X=X,Z=Z,K=A.mat(G,n.core=n.core,min.MAF=min.MAF),return.Hinv=TRUE)$Hinv  
 df <- p + 1
 
-scores <- rep(0,m)
-freq <- colMeans(G+1)/2
-for (i in 1:m) {
-  MAF <- min(freq[i],1-freq[i])
+if (length(which(is.na(G))) > 0) {missing=TRUE} else {missing=FALSE}
+
+score.calc <- function(G) {
+  scores <- rep(0,ncol(G))
+  for (i in 1:ncol(G)) {
+    Gi <- G[,i]
+  freq <- mean(Gi+1,na.rm=TRUE)/2
+  MAF <- min(freq,1-freq)
   if (MAF < min.MAF) {
     scores[i] <- 0
   } else {
-  
-  Xsnp <- cbind(X,Z%*%G[,i])
 
-  if (check.rank==TRUE) {
-    rXsnp <- qr(Xsnp)$rank
+  if (missing) {
+  NA.mark <- which(is.na(Gi))
+  Gi[NA.mark] <- 0
+  X2 <- cbind(X,Z%*%Gi)
+  temp <- rep(0,n.line)
+  temp[NA.mark] <- 1
+  not.NA <- which(Z%*%temp!=1)
+  n2 <- length(not.NA)
+  X2 <- X2[not.NA,]
+  y2 <- y[not.NA]
+  H2inv <- Hinv[not.NA,not.NA]
+  } else {
+  n2 <- n
+  X2 <- cbind(X,Z%*%Gi)
+  y2 <- y
+  H2inv <- Hinv
+  }
+  if (check.rank) {
+    rXsnp <- qr(X2)$rank
   } else {
     rXsnp <- df
   }
   if (rXsnp != df) {
-    scores[i] <- 0 
+    scores[i] <- 0
   } else {
-  A <- crossprod(Xsnp,Hinv%*%Xsnp)
-  Ainv <- solve(A)
-  beta <- Ainv %*% crossprod(Xsnp,Hinv%*%y)
-  resid <- y - Xsnp %*% beta
-  s2 <- as.double(crossprod(resid,Hinv%*%resid))/(n-df)
-  CovBeta <- s2*Ainv
+  W <- crossprod(X2,H2inv%*%X2)
+  Winv <- solve(W)
+  beta <- Winv %*% crossprod(X2,H2inv%*%y2)
+  resid <- y2 - X2 %*% beta
+  s2 <- as.double(crossprod(resid,H2inv%*%resid))/(n2-df)
+  CovBeta <- s2*Winv
   F <- beta[df]^2/CovBeta[df,df]
-  pvalue <- 1 - pf(F,1,n-df)
+  pvalue <- 1 - pf(F,1,n2-df)
 
   if (pvalue==0) {
   u <- 1/(1+AS2*sqrt(F))
@@ -76,12 +91,21 @@ for (i in 1:m) {
   scores[i] <- -logp
   } else {  
   scores[i] <- -log(pvalue,10)
-  } #end pvalue == 0
+  } #if pvalue == 0
 
-  } #end ifelse Xsnp full rank
-  } #end if/else MAF < minMAF
-} #end for
+  } #ifelse Xsnp full rank
+  } #if/else MAF < minMAF
+  } #for i
+  return(scores)
+} #end score.calc
 
-scores
+  if (n.core > 1) {
+    it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
+    library(multicore)
+    scores <- unlist(mclapply(it,function(markers){score.calc(G[,markers])}))
+   } else {
+    scores <- score.calc(G)
+   }      
+  return(scores)
 } #end function
 

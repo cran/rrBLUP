@@ -15,8 +15,7 @@ line as a random effect with \eqn{Var[g] = K \sigma^2_g}.  The residual variance
 \eqn{Var[\varepsilon] = I \sigma_e^2}.
 }
 \usage{
-GWA(y, G, Z=NULL, X=NULL, K=NULL, min.MAF=0.05, 
-     check.rank=FALSE)
+GWA(y, G, Z=NULL, X=NULL, min.MAF=0.05, n.core=1, check.rank=FALSE)
 }
 
 \arguments{
@@ -25,7 +24,7 @@ Vector (\eqn{n \times 1}) of observations.  Missing values (NA) are omitted.
 }
   \item{G}{
 Matrix (\eqn{t \times m}) of genotypes for \eqn{t} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}.  Fractional (imputed) alleles are
+Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}.  Fractional (imputed) and missing (NA) values are
 allowed.  
 }
   \item{Z}{
@@ -36,14 +35,14 @@ is used.
 Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector of 1's is used 
 to model the intercept.
 }
-  \item{K}{
-Kinship matrix for the population; if not passed, the realized relationship matrix \eqn{G G'} is used.
-}
   \item{min.MAF}{
 Specifies the minimum minor allele frequency (MAF).  If a marker has a MAF less than min.MAF,
 it is assigned a zero score.  
 }
-  \item{check.rank}{
+\item{n.core}{
+For Mac, Linux, and UNIX users, setting n.core > 1 will enable parallel execution on a machine with multiple cores. R package multicore must be installed for this to work.  Do not run multicore from within the R GUI; you must use the command line.   
+}
+\item{check.rank}{
 If TRUE, function will check the rank of the augmented design matrix for each marker. Markers for
 which the design matrix is singular are assigned a zero score.
 }
@@ -55,8 +54,6 @@ This function implements the iterative, generalized least-squares method of Kang
 The use of a minimum MAF is typically adequate to ensure the problem is well-posed.  However,
 if an error message indicates the problem is singular, set check.rank to TRUE.  This will slow 
 down the algorithm but should fix the error.
-
-Missing marker data are not allowed (\code{\link{impute}} first).
 }
 \value{
 Returns \eqn{m \times 1} vector of the marker scores, which equal \eqn{-log_{10}}(p-value)

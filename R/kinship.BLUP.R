@@ -1,4 +1,4 @@
-kinship.BLUP <- function(y,G.train,G.pred=NULL,X=NULL,Z.train=NULL,K.method="RR",n.profile=10,mixed.method="REML") {
+kinship.BLUP <- function(y,G.train,G.pred=NULL,X=NULL,Z.train=NULL,K.method="RR",n.profile=10,mixed.method="REML",n.core=1) {
 #assumes genotypes coded on [-1,1] scale
 #continuous values OK
 
@@ -36,12 +36,11 @@ if (!is.null(G.pred)) {
   n.pred <- 0
 }
 
-t <- n.pred + n.train #total number of lines
 Z <- cbind(Z.train,matrix(rep(0,n.obs*n.pred),n.obs,n.pred))
 G <- rbind(G.train,G.pred)
 
 if (K.method == "RR") {
-   K <- A.mat(G)
+   K <- A.mat(G,n.core=n.core)
    soln <- mixed.solve(y=y,X=X,Z=Z,K=K,method=mixed.method)
    if (n.pred > 0) {
      list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta)
@@ -52,18 +51,30 @@ if (K.method == "RR") {
   if ((K.method != "EXP")&(K.method != "GAUSS")) {stop("Invalid K.method")}
   # "exp" or "gauss"
   theta <- setdiff(seq(0,1,length.out=n.profile+1),0)
-  LL <- rep(0,n.profile)
-  soln <- list()
-
   D <- as.matrix(dist(G))/2/sqrt(m)
-  
-  for (i in 1:n.profile) {
+
+  ms.fun <- function(theta) {
+    soln <- list()
+    n.t <- length(theta)
+    for (i in 1:n.t) {
     if (K.method == "EXP") {K <- exp(-D/theta[i])} 
     if (K.method == "GAUSS") {K <- exp(-(D/theta[i])^2) }
     soln[[i]] <- mixed.solve(y=y,X=X,Z=Z,K=K,method=mixed.method)
-    LL[i] <- soln[[i]]$LL
-  } #for i
+    }
+    return(soln)
+  }
 
+  if (n.core > 1) {
+    library(multicore)
+    it <- split(theta,factor(cut(theta,n.core,labels=FALSE)))
+    soln <- unlist(mclapply(it,ms.fun),recursive=FALSE)
+  } else {
+    soln <- ms.fun(theta)
+  }      
+
+  LL <- rep(0,n.profile)
+  for (i in 1:n.profile) {LL[i] <- soln[[i]]$LL}
+  
   #find maximum LL soln
   max.LL <- which.max(LL)
   g.train <- soln[[max.LL]]$u[1:n.train]

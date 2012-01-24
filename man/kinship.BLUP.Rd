@@ -9,7 +9,7 @@ This function uses \code{\link{mixed.solve}} for genomic prediction based on the
 }
 \usage{
 kinship.BLUP(y, G.train, G.pred=NULL, X=NULL, Z.train=NULL, 
-             K.method="RR", n.profile=10, mixed.method="REML")
+     K.method="RR", n.profile=10, mixed.method="REML", n.core=1)
 }
 
 \arguments{
@@ -35,12 +35,15 @@ the identity matrix is used.
    \item{K.method}{
 "RR" (default) is ridge regression, for which K is the realized additive relationship matrix computed with \code{\link{A.mat}}.  The option "GAUSS" is a Gaussian kernel (\eqn{K = e^{-D^2/\theta^2}}) and "EXP" is an exponential kernel (\eqn{K = e^{-D/\theta}}), where Euclidean distances \eqn{D} are computed with \code{\link{dist}}.
 }
- 
+
   \item{n.profile}{
 For K.method = "GAUSS" or "EXP", the number of points to use in the log-likelihood profile for the scale parameter \eqn{\theta}.
 }
   \item{mixed.method}{
 Either "REML" (default) or "ML".
+}
+\item{n.core}{
+For Mac, Linux, and UNIX users, setting n.core > 1 will enable parallel execution on a machine with multiple cores. R package multicore must be installed for this to work.  Do not run multicore from within the R GUI; you must use the command line.   
 }
 }
 \value{
