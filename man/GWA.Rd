@@ -9,10 +9,7 @@ Performs genome-wide association analysis based on the mixed model
 
 \deqn{y = X \beta + Z g + \varepsilon}
 
-where \eqn{\beta} is a vector of fixed effects that can model both environmental
-factors and population structure.  The variable \eqn{g} models the genetic background of each
-line as a random effect with \eqn{Var[g] = K \sigma^2_g}.  The residual variance is 
-\eqn{Var[\varepsilon] = I \sigma_e^2}.
+where \eqn{\beta} is a vector of fixed effects that can model both environmental factors and population structure.  The variable \eqn{g} models the genetic background of each line as a random effect with \eqn{Var[g] = A \sigma^2_A}, where A is the additive relationship matrix.  The residual variance is \eqn{Var[\varepsilon] = I \sigma_e^2}.
 }
 \usage{
 GWA(y, G, Z=NULL, X=NULL, min.MAF=0.05, n.core=1, check.rank=FALSE)

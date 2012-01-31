@@ -1,3 +1,3 @@
-export(mixed.solve,impute,GWA,kinship.BLUP,A.mat)
+export(mixed.solve,GWA,kinship.BLUP,A.mat)
 
 
