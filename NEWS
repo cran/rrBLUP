@@ -1,3 +1,7 @@
+Changes in 3.4:
+
+* Additional features for A.mat.
+
 Changes in 3.3:
 
 * Improved handling of missing genotype data in A.mat.

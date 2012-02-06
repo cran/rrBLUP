@@ -1,6 +1,6 @@
 Package: rrBLUP
 Title: Ridge regression and other kernels for genomic selection
-Version: 3.3
+Version: 3.4
 Author: Jeffrey Endelman
 Maintainer: Jeffrey Endelman <j.endelman@gmail.com>
 Description: One application is to estimate marker effects by ridge
@@ -11,6 +11,6 @@ Description: One application is to estimate marker effects by ridge
 Suggests: multicore
 License: GPL-3
 LazyLoad: yes
-Packaged: 2012-01-31 22:43:49 UTC; jeffendelman
+Packaged: 2012-02-06 18:10:17 UTC; jeffendelman
 Repository: CRAN
-Date/Publication: 2012-02-01 08:13:28
+Date/Publication: 2012-02-06 21:06:52
