@@ -29,14 +29,14 @@ if (!is.null(K)) {
 	stopifnot(ncol(K) == m)
 }
 
-Z <- Z[not.NA,]
-X <- X[not.NA,]
+Z <- as.matrix(Z[not.NA,])
+X <- as.matrix(X[not.NA,])
 n <- length(not.NA)
 y <- matrix(y[not.NA],n,1)
 
 XtX <- crossprod(X, X)
 rank.X <- qr(XtX)$rank
-stopifnot(p == rank.X)
+if (rank.X < p) {stop("X not full rank")}
 XtXinv <- solve(XtX)
 S <- diag(n) - tcrossprod(X%*%XtXinv,X)
 if (n <= m + p) {
@@ -114,35 +114,47 @@ Vu.opt <- sum(omega.sq/(theta + lambda.opt))/df
 Ve.opt <- lambda.opt * Vu.opt
 Hinv <- U %*% (t(U)/(phi+lambda.opt))
 W <- crossprod(X,Hinv%*%X)
-beta <- solve(W,crossprod(X,Hinv%*%y))
+beta <- array(solve(W,crossprod(X,Hinv%*%y)))
+rownames(beta) <- colnames(X)
+
 if (is.null(K)) {
 	KZt <- t(Z)
 } else {
 	KZt <- tcrossprod(K,Z)
 }
 KZt.Hinv <- KZt %*% Hinv
-u <- KZt.Hinv %*% (y - X%*%beta)
+u <- array(KZt.Hinv %*% (y - X%*%beta))
+
+if (is.null(K)) {
+    rownames(u) <- colnames(Z)
+} else {
+    rownames(u) <- rownames(K)
+}
+
 LL = -0.5 * (soln$objective + df + df * log(2 * pi/df))
 if (!SE) {
   if (return.Hinv) {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL, Hinv = Hinv)
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL, Hinv = Hinv)
   } else {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), u = as.vector(u), LL = LL)
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL)
   }
 } else {
   Winv <- solve(W)
-  beta.SE <- sqrt(Vu.opt*diag(Winv))
+  beta.SE <- array(sqrt(Vu.opt*diag(Winv)))
+  rownames(beta.SE) <- rownames(beta)
   WW <- tcrossprod(KZt.Hinv,KZt)
   WWW <- KZt.Hinv%*%X
   if (is.null(K)) {
-	u.SE <- sqrt(Vu.opt * (rep(1,m) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW))))	
+	u.SE <- array(sqrt(Vu.opt * (rep(1,m) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW)))))	
   } else {
-	u.SE <- sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW))))
+	u.SE <- array(sqrt(Vu.opt * (diag(K) - diag(WW) + diag(tcrossprod(WWW%*%Winv,WWW)))))
   }
+  rownames(u.SE) <- rownames(u)
+  
   if (return.Hinv) {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL, Hinv = Hinv)
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL, Hinv = Hinv)
   } else {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = as.vector(beta), beta.SE = as.vector(beta.SE), u = as.vector(u), u.SE = as.vector(u.SE), LL = LL)
+    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL)
   }
 }
 }

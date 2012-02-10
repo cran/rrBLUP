@@ -32,8 +32,8 @@ if (is.null(Z)) {Z <- diag(n)}
 stopifnot(nrow(Z)==n)
 stopifnot(ncol(Z)==n.line)
 
-Z <- Z[not.NA,]
-X <- X[not.NA,]
+Z <- as.matrix(Z[not.NA,])
+X <- as.matrix(X[not.NA,])
 n <- length(not.NA)
 y <- matrix(y[not.NA],n,1)
 Hinv <- mixed.solve(y,X=X,Z=Z,K=A.mat(G,n.core=n.core,min.MAF=min.MAF),return.Hinv=TRUE)$Hinv  
@@ -42,7 +42,8 @@ df <- p + 1
 if (length(which(is.na(G))) > 0) {missing=TRUE} else {missing=FALSE}
 
 score.calc <- function(G) {
-  scores <- rep(0,ncol(G))
+  scores <- array(0,ncol(G))
+  rownames(scores) <- colnames(G)
   for (i in 1:ncol(G)) {
     Gi <- G[,i]
   freq <- mean(Gi+1,na.rm=TRUE)/2
@@ -96,6 +97,7 @@ score.calc <- function(G) {
   } #ifelse Xsnp full rank
   } #if/else MAF < minMAF
   } #for i
+    
   return(scores)
 } #end score.calc
 
