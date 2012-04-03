@@ -1,3 +1,7 @@
+Changes in 3.6:
+
+* Improved error handling in mixed.solve.
+
 Changes in 3.5:
 
 * Labels now transfer from input to output with mixed.solve.

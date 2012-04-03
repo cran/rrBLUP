@@ -75,9 +75,15 @@ svd.SZBt <- svd(SZBt)
 QR <- qr(cbind(X,svd.SZBt$u))
 Q <- qr.Q(QR,complete=TRUE)[,(p+1):n]
 R <- qr.R(QR)[p+1:m,p+1:m]
-theta <- c(forwardsolve(t(R^2),svd.SZBt$d^2),rep(0,n-p-m))
+ans <- try(solve(t(R^2), svd.SZBt$d^2),silent=TRUE)
+if (class(ans)=="try-error") {
+    spectral.method <- "eigen"
 } else {
-# spectral.method is "eigen"
+    theta <- c(ans,rep(0, n - p - m))
+}
+}
+
+if (spectral.method=="eigen") {
 offset <- sqrt(n)
 if (is.null(K)) {
 	Hb <- tcrossprod(Z,Z) + offset*diag(n)
@@ -92,7 +98,8 @@ SHbS <- S %*% Hb %*% S
 SHbS.system <- eigen(SHbS, symmetric = TRUE)
 theta <- SHbS.system$values[1:(n - p)] - offset
 Q <- SHbS.system$vectors[, 1:(n - p)]
-}  #if (n > m)
+}  
+    
 omega <- crossprod(Q, y)
 omega.sq <- omega^2
 if (method == "ML") {
