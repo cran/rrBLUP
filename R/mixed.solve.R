@@ -44,23 +44,12 @@ if (n <= m + p) {
 } else {
   spectral.method <- "cholesky"
   if (!is.null(K)) {
+    diag(K) <- diag(K) + 1e-6
   	B <- try(chol(K),silent=TRUE)
-  	if (class(B)=="try-error") {
-         # K not positive definite
-         eig.K <- eigen(K,symmetric=TRUE)
-         if (min(eig.K$values) < -1e-6) {
-           stop("K not positive semi-definite")
-         } else {
-         # use pivoting
-         options(warn=-1) #disable warning
-         B <- chol(K,pivot=TRUE)
-         options(warn=0)
-         pivot <- attr(B,"pivot")         
-         B <- B[,order(pivot)]         
-         } #if min(eig.K)
-     } #if class(B)
+  	if (class(B)=="try-error") {stop("K not positive semi-definite.")}
   } # if is.null
 } 
+
 if (spectral.method=="cholesky") {
 if (is.null(K)) {
 	ZBt <- Z

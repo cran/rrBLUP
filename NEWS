@@ -1,3 +1,7 @@
+Changes in 3.7:
+
+* Improved handling of positive semi-definite kinship matrix in mixed.solve.
+
 Changes in 3.6:
 
 * Improved error handling in mixed.solve.
