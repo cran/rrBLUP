@@ -1,3 +1,7 @@
+Changes in 3.8:
+
+* Fixed error regarding imputation of monomorphic markers in A.mat.
+
 Changes in 3.7:
 
 * Improved handling of positive semi-definite kinship matrix in mixed.solve.

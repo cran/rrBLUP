@@ -48,7 +48,7 @@ sig.A <- sqrt(2 * mean(freq[markers] * (1 - freq[markers])))
 one <- matrix(1, n, 1)
 
 mono <- which(freq*(1-freq)==0)
-G[,mono] <- tcrossprod(one,matrix(freq[mono],length(mono),1))
+G[,mono] <- 2*tcrossprod(one,matrix(freq[mono],length(mono),1))-1
 
 freq.mat <- tcrossprod(one, matrix(freq[markers], m, 1))
 W <- (G[, markers] + 1 - 2 *freq.mat )/sig.A
