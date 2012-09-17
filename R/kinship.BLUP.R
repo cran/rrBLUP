@@ -43,9 +43,9 @@ if (K.method == "RR") {
    K <- A.mat(G,n.core=n.core)
    soln <- mixed.solve(y=y,X=X,Z=Z,K=K,method=mixed.method)
    if (n.pred > 0) {
-     list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta)
+     return(list(g.train=soln$u[1:n.train],g.pred=soln$u[n.train+1:n.pred],beta=soln$beta))
    } else {
-     list(g.train=soln$u[1:n.train],beta=soln$beta)
+     return(list(g.train=soln$u[1:n.train],beta=soln$beta))
    }
 } else {
   if ((K.method != "EXP")&(K.method != "GAUSS")) {stop("Invalid K.method")}
@@ -80,9 +80,9 @@ if (K.method == "RR") {
   g.train <- soln[[max.LL]]$u[1:n.train]
   if (n.pred > 0) {
     g.pred <- soln[[max.LL]]$u[n.train+1:n.pred]
-    list(profile=cbind(theta,LL),g.train=g.train,g.pred=g.pred,beta=soln[[max.LL]]$beta)
+    return(list(profile=cbind(theta,LL),g.train=g.train,g.pred=g.pred,beta=soln[[max.LL]]$beta))
   } else {
-    list(profile=cbind(theta,LL),g.train=g.train,beta=soln[[max.LL]]$beta)
+    return(list(profile=cbind(theta,LL),g.train=g.train,beta=soln[[max.LL]]$beta))
   }
 
 } #if K.method

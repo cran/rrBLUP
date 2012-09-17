@@ -1,0 +1,4 @@
+%\VignetteIndexEntry{Using rrBLUP 4.0}
+\documentclass{article}
+\begin{document}
+\end{document}

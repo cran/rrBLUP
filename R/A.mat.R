@@ -1,20 +1,6 @@
-A.mat <- function(G,min.MAF=NULL,max.missing=NULL,impute=TRUE,tol=0.02,n.core=1,return.G=FALSE){
-	
-tcrossprod.na <- function(V,W) {
-    crossprod.na <- function(x1, x2) {
-        mean(x1 * x2, na.rm = TRUE)
-    }
-    n1 <- nrow(V)
-    n2 <- nrow(W)
-    result <- matrix(0,n1,n2)
-    for (i in 1:n1) {
-    	result[i,] <- apply(W,1,crossprod.na,V[i,])
-    }
-    return(result)
-}
-    
-    
-impute2 <- function(W, cov.mat, mean.vec) {
+A.mat <- function(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,n.core=1,shrink=NULL,return.imputed=FALSE){
+
+impute.EM <- function(W, cov.mat, mean.vec) {
 	n <- nrow(W)
 	m <- ncol(W)
 	S <- matrix(0,n,n)
@@ -35,99 +21,123 @@ impute2 <- function(W, cov.mat, mean.vec) {
 	return(list(S=S,W.imp=W))
 }
 
-n <- nrow(G)
-frac.missing <- apply(G,2,function(x){length(which(is.na(x)))/n})
+cov.W.shrink <- function(W) {
+	m <- ncol(W)
+	n <- nrow(W)
+	Z <- t(scale(t(W),scale=FALSE))
+	Z2 <- Z^2
+	S <- tcrossprod(Z)/m
+	target <- mean(diag(S))*diag(n)
+	var.S <- tcrossprod(Z2)/m^2-S^2/m
+	b2 <- sum(var.S)
+	d2 <- sum((S-target)^2)
+	delta <- max(0,min(1,b2/d2))
+	print(paste("Shrinkage intensity:",round(delta,2)))
+	return(target*delta + (1-delta)*S)
+}
+
+n <- nrow(X)
+frac.missing <- apply(X,2,function(x){length(which(is.na(x)))/n})
 missing <- max(frac.missing) > 0
-freq <- apply(G + 1, 2, function(x) {mean(x, na.rm = missing)})/2
+freq <- apply(X + 1, 2, function(x) {mean(x, na.rm = missing)})/2
 MAF <- apply(rbind(freq,1-freq),2,min)
 if (is.null(min.MAF)) {min.MAF <- 1/(2*n)}
 if (is.null(max.missing)) {max.missing <- 1 - 1/(2*n)}
 markers <- which((MAF >= min.MAF)&(frac.missing <= max.missing)) 
 m <- length(markers)
-sig.A <- sqrt(2 * mean(freq[markers] * (1 - freq[markers])))
+var.A <- 2 * mean(freq[markers] * (1 - freq[markers]))
 one <- matrix(1, n, 1)
 
 mono <- which(freq*(1-freq)==0)
-G[,mono] <- 2*tcrossprod(one,matrix(freq[mono],length(mono),1))-1
+X[,mono] <- 2*tcrossprod(one,matrix(freq[mono],length(mono),1))-1
 
 freq.mat <- tcrossprod(one, matrix(freq[markers], m, 1))
-W <- (G[, markers] + 1 - 2 *freq.mat )/sig.A
+W <- X[, markers] + 1 - 2 *freq.mat 
+
+if (is.null(shrink)) {if (m < 5*n) {shrink <- TRUE} else {shrink <- FALSE}}
 
 if (!missing) {
-	A <- tcrossprod(W)/m
-	rownames(A) <- rownames(G)
+    if (shrink) {
+		W.mean <- rowMeans(W)
+		cov.W <- cov.W.shrink(W)
+		A <- (cov.W+tcrossprod(W.mean))/var.A	
+	} else {
+		A <- tcrossprod(W)/var.A/m	
+	}
+	rownames(A) <- rownames(X)
 	return(A)
 } else {
-    if (!impute) {
-       if (n.core > 1) {
-          library(multicore)
-          it <- split(1:n,factor(cut(1:n,n.core,labels=FALSE)))
-          A.list <- mclapply(it,function(ix){tcrossprod.na(W[ix,],W)})
-          A <- numeric(0)
-          for (i in 1:n.core) {A <- rbind(A,A.list[[i]])}
-       } else {
-          A <- tcrossprod.na(W,W)
-	   }	
-       rownames(A) <- rownames(G)
-       return(A)
-    } else {
-    #impute = TRUE	
+    #impute
     isna <- which(is.na(W)) 
 	W[isna] <- 0
-	if (m < n) {
-		print("There are fewer markers than lines: imputing with population means.")
-	}
-	if ((m < n)|(tol < 0)) {
-		A <- tcrossprod(W)/m
-		rownames(A) <- rownames(G)
-		if (return.G) {
-			G[,markers] <- W*sig.A - 1 + 2*freq.mat
-			return(list(A=A,G.imp=G))		
+	if ((impute.method=="em")|(impute.method=="EM")) {
+		if (m < n) {
+			print("Linear dependency among the lines: imputing with mean instead of EM algorithm.")
 		} else {
-			return(A)
-		}
-	}
+			mean.vec.new <- matrix(rowMeans(W),n,1)
+			cov.mat.new <- cov(t(W))
+			if (qr(cov.mat.new)$rank < nrow(cov.mat.new)-1) {
+				print("Linear dependency among the lines: imputing with mean instead of EM algorithm.")
+			} else {
 
-	#do EM algorithm
-	mean.vec.new <- matrix(rowMeans(W),n,1)
-	cov.mat.new <- cov(t(W))
-    W[isna] <- NA
-	A.new <- cov.mat.new + tcrossprod(mean.vec.new)
-	err <- tol+1
-	print("A.mat converging:")
-	while (err >= tol) {
-		A.old <- A.new
-		cov.mat.old <- cov.mat.new
-		mean.vec.old <- mean.vec.new
-		if (n.core > 1) {
-            library(multicore)
-			it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-			pieces <- mclapply(it,function(mark2){impute2(W[,mark2],cov.mat.old,mean.vec.old)})
-		} else {
-			pieces <- list()
-			pieces[[1]] <- impute2(W,cov.mat.old,mean.vec.old)
-		}
-		n.pieces <- length(pieces)
-		S <- matrix(0,n,n)
-		W.imp <- numeric(0)
-		for (i in 1:n.pieces) {
-			S <- S + pieces[[i]]$S
-			W.imp <- cbind(W.imp,pieces[[i]]$W.imp)
-		}
-		mean.vec.new <- matrix(rowMeans(W.imp),n,1)
-		cov.mat.new <- (S-tcrossprod(mean.vec.new)*m)/(m-1)
-		A.new <- cov.mat.new + tcrossprod(mean.vec.new)
-		err <- norm(A.old-A.new,type="F")/n
-		print(err,digits=3)
-	}
-	rownames(A.new) <- rownames(G)
-	if (return.G) {
-		G[,markers] <- W.imp*sig.A - 1 + 2*freq.mat
-		return(list(A=A.new,G.imp=G))
+			#do EM algorithm
+		    W[isna] <- NA
+			A.new <- (cov.mat.new + tcrossprod(mean.vec.new))/var.A
+			err <- tol+1
+			print("A.mat converging:")
+			while (err >= tol) {
+				A.old <- A.new
+				cov.mat.old <- cov.mat.new
+				mean.vec.old <- mean.vec.new
+				if (n.core > 1) {
+            		library(multicore)
+					it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
+					pieces <- mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)})
+				} else {
+					pieces <- list()
+					pieces[[1]] <- impute.EM(W,cov.mat.old,mean.vec.old)
+				}
+				n.pieces <- length(pieces)
+				S <- matrix(0,n,n)
+				W.imp <- numeric(0)
+				for (i in 1:n.pieces) {
+					S <- S + pieces[[i]]$S
+					W.imp <- cbind(W.imp,pieces[[i]]$W.imp)
+				}
+				mean.vec.new <- matrix(rowMeans(W.imp),n,1)
+				cov.mat.new <- (S-tcrossprod(mean.vec.new)*m)/(m-1)
+				A.new <- (cov.mat.new + tcrossprod(mean.vec.new))/var.A
+				err <- norm(A.old-A.new,type="F")/n
+				print(err,digits=3)
+			}
+			rownames(A.new) <- rownames(X)
+			if (return.imputed) {
+				X[,markers] <- W.imp - 1 + 2*freq.mat
+				return(list(A=A.new,imputed=X))
+			} else {
+				return(A.new)
+			}
+		  	} #else EM 
+  		} #else EM
+  	} #else EM
+  		
+  	#imputing with mean
+	if (shrink) {
+		W.mean <- rowMeans(W)
+		cov.W <- cov.W.shrink(W)
+		A <- (cov.W+tcrossprod(W.mean))/var.A	
 	} else {
-		return(A.new)
+		A <- tcrossprod(W)/var.A/m	
 	}
-  	} #else IMPUTE
-} #else MISSING
+	rownames(A) <- rownames(X)
+
+	if (return.imputed) {
+		X[,markers] <- W - 1 + 2*freq.mat
+		return(list(A=A,imputed=X))		
+	} else {
+		return(A)
+	}
+} #else missing
+
 } #A.mat
 

@@ -1,3 +1,8 @@
+Changes in 4.0:
+
+* kinship.BLUP is no longer being improved.  It has been replaced by kin.blup, which has a more intuitve interface.
+* Shrinkage estimation functionality has been added to A.mat, which is beneficial at low marker density.
+
 Changes in 3.8:
 
 * Fixed error regarding imputation of monomorphic markers in A.mat.

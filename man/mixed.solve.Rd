@@ -32,7 +32,7 @@ be the identity matrix.
 }
   \item{X}{
 Design matrix (\eqn{n \times p}) for the fixed effects.  If not passed, a vector of 1's is used
-to model the intercept.
+to model the intercept.  X must be full column rank (implies \eqn{\beta} is estimable).
 }
   \item{method}{
 Specifies whether the full ("ML") or restricted ("REML") maximum-likelihood method is used.
@@ -50,15 +50,23 @@ If TRUE, the function returns the inverse of \eqn{H = Z K Z' + \lambda I}.  This
 \details{
 This function can be used to predict marker effects or breeding values (see examples).  The numerical method 
 is based on the spectral decomposition of \eqn{Z K Z'} and \eqn{S Z K Z' S}, where \eqn{S = I - X (X' X)^{-1} X'} is 
-the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). For marker effects where K = I, the function 
-will run faster if K is not passed than if the user passes the identity matrix.
+the projection operator for the nullspace of \eqn{X} (Kang et al., 2008). This algorithm generates the inverse phenotypic covariance matrix \eqn{V^{-1}}, which can then be used to calculate the BLUE and BLUP solutions for the fixed and random effects, respectively, using standard formulas (Searle et al. 1992):
+
+\deqn{BLUE(\beta) = \beta^* = (X'V^{-1}X)^{-1}X'V^{-1}y}
+\deqn{BLUP(u) = u^* = \sigma^2_u KZ'V^{-1}(y-X\beta^*)}
+
+The standard errors are calculated as the square root of the diagonal elements of the following matrices (Searle et al. 1992):
+\deqn{Var[\beta^*] = (X'V^{-1}X)^{-1}}
+\deqn{Var[u^*-u] = K \sigma^2_u - \sigma^4_u KZ'V^{-1}ZK + \sigma^4_u KZ'V^{-1}XVar[\beta^*]X'V^{-1}ZK}
+
+For marker effects where K = I, the function will run faster if K is not passed than if the user passes the identity matrix.
 }
 \value{
 If SE=FALSE, the function returns a list containing
 \describe{
 \item{$Vu}{estimator for \eqn{\sigma^2_u}}
 \item{$Ve}{estimator for \eqn{\sigma^2_e}}
-\item{$beta}{estimator for \eqn{\beta}}
+\item{$beta}{BLUE(\eqn{\beta})}
 \item{$u}{BLUP(\eqn{u})}
 \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
 }
@@ -66,7 +74,7 @@ If SE=FALSE, the function returns a list containing
 If SE=TRUE, the list also contains
 \describe{
 \item{$beta.SE}{standard error for \eqn{\beta}}
-\item{$u.SE}{standard error for BLUP(\eqn{u}) \eqn{- u}}
+\item{$u.SE}{standard error for \eqn{u^*-u}}
 }
 
 If return.Hinv=TRUE, the list also contains
@@ -79,27 +87,29 @@ Kang et al. 2008. Efficient control of population structure in model organism as
 Genetics 178:1709-1723.
 
 Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255.
+
+Searle, S.R., G. Casella and C.E. McCulloch. 1992. Variance Components. John Wiley, Hoboken.
 }
 
 \examples{
 #random population of 200 lines with 1000 markers
-G <- matrix(rep(0,200*1000),200,1000)
+M <- matrix(rep(0,200*1000),200,1000)
 for (i in 1:200) {
-  G[i,] <- ifelse(runif(1000)<0.5,-1,1)
+  M[i,] <- ifelse(runif(1000)<0.5,-1,1)
 }
 
 #random phenotypes
 u <- rnorm(1000)
-g <- as.vector(crossprod(t(G),u))
+g <- as.vector(crossprod(t(M),u))
 h2 <- 0.5  #heritability
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
 #predict marker effects
-ans <- mixed.solve(y,Z=G)  #By default K = I
+ans <- mixed.solve(y,Z=M)  #By default K = I
 accuracy <- cor(u,ans$u)
 
 #predict breeding values
-ans <- mixed.solve(y,K=A.mat(G))
+ans <- mixed.solve(y,K=A.mat(M))
 accuracy <- cor(g,ans$u)
 
 }

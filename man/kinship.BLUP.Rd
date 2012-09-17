@@ -2,10 +2,10 @@
 \alias{kinship.BLUP}
 
 \title{
-Genomic prediction by kinship-BLUP
+Genomic prediction by kinship-BLUP (deprecated)
 }
 \description{
-This function uses \code{\link{mixed.solve}} for genomic prediction based on the kinship between lines. 
+***This function has been superseded by \code{\link{kin.blup}}; please refer to its help page.
 }
 \usage{
 kinship.BLUP(y, G.train, G.pred=NULL, X=NULL, Z.train=NULL, 
@@ -14,15 +14,15 @@ kinship.BLUP(y, G.train, G.pred=NULL, X=NULL, Z.train=NULL,
 
 \arguments{
   \item{y}{
-Vector (\eqn{n.obs \times 1}) of observations.  Missing values (NA) are omitted (see \code{\link{mixed.solve}}).
+Vector (\eqn{n.obs \times 1}) of observations.  Missing values (NA) are omitted.
 }
   \item{G.train}{
 Matrix (\eqn{n.train \times m}) of unphased genotypes for the training population: \eqn{n.train} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) and missing (NA) alleles are allowed.  
+Genotypes should be coded as \{-1,0,1\}; fractional (imputed) and missing (NA) alleles are allowed.  
 }
   \item{G.pred}{
 Matrix (\eqn{n.pred \times m}) of unphased genotypes for the prediction population: \eqn{n.pred} lines with \eqn{m} bi-allelic markers.
-Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}; fractional (imputed) and missing (NA) alleles are allowed.  
+Genotypes should be coded as \{-1,0,1\}; fractional (imputed) and missing (NA) alleles are allowed.  
 }
   \item{X}{
 Design matrix (\eqn{n.obs \times p}) of fixed effects.  If not passed, a vector of 1's is used 
@@ -61,9 +61,6 @@ For GAUSS or EXP, function also returns
 Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255.
 }
 
-\seealso{
-\code{\link{mixed.solve}}
-}
 \examples{
 #random population of 200 lines with 1000 markers
 G <- matrix(rep(0,200*1000),200,1000)

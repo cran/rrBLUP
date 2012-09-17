@@ -8,55 +8,72 @@ Additive relationship matrix
 Calculates the realized additive relationship matrix.
 }
 \usage{
-A.mat(G,min.MAF=NULL,max.missing=NULL,impute=TRUE,tol=0.02,n.core=1,return.G=FALSE)
+A.mat(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,
+      n.core=1,shrink=NULL,return.imputed=FALSE)
 }
 
 \arguments{
-  \item{G}{
+  \item{X}{
 Matrix (\eqn{n \times m}) of unphased genotypes for \eqn{n} lines and \eqn{m} biallelic markers, 
-coded as \{-1,0,1\} = \{aa,Aa,AA\}. Fractional (imputed) and missing values (NA) are allowed.
+coded as \{-1,0,1\}. Fractional (imputed) and missing values (NA) are allowed.
 }
 \item{min.MAF}{
-Minimum minor allele frequency; default removes monomorphic markers.
+Minimum minor allele frequency. The A matrix is not sensitive to rare alleles, so by default only monomorphic markers are removed.
 }
 \item{max.missing}{
 Maximum proportion of missing data; default removes completely missing markers.
 }
-\item{impute}{
-If TRUE, missing genotypic data are imputed (see below).  If FALSE, A is calculated from pairwise complete observations, which does not guarantee positive semidefiniteness (this can cause problems with \code{\link{mixed.solve}}).
+\item{impute.method}{
+There are two options.  The default is "mean", which imputes with the mean for each marker.  The "EM" option imputes with an EM algorithm (see details).
 }
 \item{tol}{
-Specifies convergence criterion for imputing missing data with an EM algorithm (see details). If tol < 0, missing data are imputed with the population mean for each marker.
+Specifies the convergence criterion for the EM algorithm (see details). 
 }
 \item{n.core}{
-For Mac, Linux, and UNIX users, setting n.core > 1 will enable parallel execution on a machine with multiple cores. R package multicore must be installed for this to work.  Do not run multicore from within the R GUI; you must use the command line.   
+Specifies the number of cores to use for parallel execution of the EM algorithm. 
 }
-\item{return.G}{
-If TRUE (and impute = TRUE), the imputed marker matrix is returned.  When the EM algorithm is used, the imputed alleles can lie outside the interval [-1,1].  Polymorphic markers that do not meet the min.MAF and max.missing criteria are not imputed.
+\item{shrink}{
+Default behavior (shrink=NULL) is to use shrinkage estimation (see details) when the # of markers is less than 5 times the # of lines (m < 5n).  To use shrinkage when m > 5n, set shrink=TRUE.  To turn off shrinkage when m < 5n, set shrink=FALSE. 
+}
+\item{return.imputed}{
+When TRUE, the imputed marker matrix is returned.  
 }
 }
 \details{
-The A matrix is calculated as \eqn{W W'/c}, where \eqn{W_{ik} = G_{ik} + 1 - 2 p_k} and \eqn{p_k} is the frequency of the 1 allele at marker k.  The normalization constant is \eqn{c = 2 \sum_k {p_k (1-p_k)}}.  
+At high marker density, the relationship matrix is estimated as \eqn{A=W W'/c}, where \eqn{W_{ik} = X_{ik} + 1 - 2 p_k} and \eqn{p_k} is the frequency of the 1 allele at marker k.  By using a normalization constant of \eqn{c = 2 \sum_k {p_k (1-p_k)}}, the mean of the diagonal elements is \eqn{1 + f} (Endelman and Jannink 2012).
 
-When marker data are missing, by default an EM algorithm is used to impute genotypes and converge on the maximum likelihood solution for A.  The EM algorithm stops at iteration t when the RMS error = \eqn{n^{-1} \|A_{t} - A_{t-1}\|_2} < tol.  If the user passes a negative value for tol, or if the number of markers is less than the number of lines, missing alleles are imputed with the population mean for each marker.
+The EM imputation algorithm is based on the multivariate normal distribution and was designed for use with GBS (genotyping-by-sequencing) markers, which tend to be high density but with lots of missing data.  Details are given in Poland et al. (2012). The EM algorithm stops at iteration \eqn{t} when the RMS error = \eqn{n^{-1} \|A_{t} - A_{t-1}\|_2} < tol.  
+
+At low marker density, shrinkage estimation can improve the estimate of the relationship matrix and the accuracy of GEBV for lines with low accuracy phenotypes (Endelman and Jannink 2012).  The shrinkage intensity ranges from 0 (no shrinkage, same estimator as high density formula) to 1 (completely shrunk to \eqn{(1+f)I}). The shrinkage intensity is chosen to minimize the expected mean-squared error and printed to the screen as output. 
+
+The shrinkage and EM options are designed for opposite scenarios (low vs. high density) and cannot be used simultaneously. 
+
+The multicore functionality only works for Mac, Linux, and UNIX users who have installed R package multicore. Do not use this option from the R GUI; you must execute from the command line.
+
+When the EM algorithm is used, the imputed alleles can lie outside the interval [-1,1].  Polymorphic markers that do not meet the min.MAF and max.missing criteria are not imputed.
 }
 \value{
-If return.G = FALSE, the \eqn{n \times n} additive relationship matrix is returned.
+If return.imputed = FALSE, the \eqn{n \times n} additive relationship matrix is returned.
 
-If return.G = TRUE, a list containing
+If return.imputed = TRUE, the function returns a list containing
 \describe{
-\item{A}{the A matrix}
-\item{G.imp}{the imputed G matrix}
+\item{$A}{the A matrix}
+\item{$imputed}{the imputed marker matrix}
 }
 }
+
+\references{
+Endelman, J.B., and J.-L. Jannink. 2012. Shrinkage estimation of the realized relationship matrix. G3:Genes, Genomes, Genetics. 
+
+Poland, J., J. Endelman et al. 2012. Genomic selection in wheat breeding using genotyping-by-sequencing. Plant Genome. doi: 10.3835/plantgenome2012.06.0006
+}
+
 \examples{
 #random population of 200 lines with 1000 markers
-G <- matrix(rep(0,200*1000),200,1000)
+X <- matrix(rep(0,200*1000),200,1000)
 for (i in 1:200) {
-  G[i,] <- ifelse(runif(1000)<0.5,-1,1)
+  X[i,] <- ifelse(runif(1000)<0.5,-1,1)
 }
 
-#Additive relationship matrix
-A <- A.mat(G)
-
+A <- A.mat(X)
 }

@@ -130,9 +130,9 @@ if (is.null(K)) {
 LL = -0.5 * (soln$objective + df + df * log(2 * pi/df))
 if (!SE) {
   if (return.Hinv) {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL, Hinv = Hinv)
+    return(list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL, Hinv = Hinv))
   } else {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL)
+    return(list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, u = u, LL = LL))
   }
 } else {
   Winv <- solve(W)
@@ -148,9 +148,9 @@ if (!SE) {
   rownames(u.SE) <- rownames(u)
   
   if (return.Hinv) {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL, Hinv = Hinv)
+    return(list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL, Hinv = Hinv))
   } else {
-    list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL)
+    return(list(Vu = Vu.opt, Ve = Ve.opt, beta = beta, beta.SE = beta.SE, u = u, u.SE = u.SE, LL = LL))
   }
 }
 }

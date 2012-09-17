@@ -1,5 +1,5 @@
 GWA <-
-function(y,G,Z=NULL,X = NULL,min.MAF=0.05,n.core=1,check.rank=FALSE) {
+function(y,M,Z=NULL,X = NULL,min.MAF=0.05,n.core=1,check.rank=FALSE) {
 #assumes genotypes on [-1,1] scale
 #missing data not allowed, impute first
 #fractional genotypes OK
@@ -22,12 +22,12 @@ if (is.null(p)) {
   X <- matrix(X,length(X),1)
 }
 stopifnot(nrow(X)==n)
-m <- ncol(G)  # number of markers
+m <- ncol(M)  # number of markers
 if (is.null(m)) {
   m <- 1
-  G <- matrix(G,length(G),1)
+  M <- matrix(M,length(M),1)
 }
-n.line <- nrow(G)
+n.line <- nrow(M)
 if (is.null(Z)) {Z <- diag(n)}
 stopifnot(nrow(Z)==n)
 stopifnot(ncol(Z)==n.line)
@@ -36,26 +36,26 @@ Z <- as.matrix(Z[not.NA,])
 X <- as.matrix(X[not.NA,])
 n <- length(not.NA)
 y <- matrix(y[not.NA],n,1)
-Hinv <- mixed.solve(y,X=X,Z=Z,K=A.mat(G,n.core=n.core,min.MAF=min.MAF),return.Hinv=TRUE)$Hinv  
+Hinv <- mixed.solve(y,X=X,Z=Z,K=A.mat(M,n.core=n.core,min.MAF=min.MAF),return.Hinv=TRUE)$Hinv  
 df <- p + 1
 
-if (length(which(is.na(G))) > 0) {missing=TRUE} else {missing=FALSE}
+if (length(which(is.na(M))) > 0) {missing=TRUE} else {missing=FALSE}
 
-score.calc <- function(G) {
-  scores <- array(0,ncol(G))
-  rownames(scores) <- colnames(G)
-  for (i in 1:ncol(G)) {
-    Gi <- G[,i]
-  freq <- mean(Gi+1,na.rm=TRUE)/2
+score.calc <- function(M) {
+  scores <- array(0,ncol(M))
+  rownames(scores) <- colnames(M)
+  for (i in 1:ncol(M)) {
+    Mi <- M[,i]
+  freq <- mean(Mi+1,na.rm=TRUE)/2
   MAF <- min(freq,1-freq)
   if (MAF < min.MAF) {
     scores[i] <- 0
   } else {
 
   if (missing) {
-  NA.mark <- which(is.na(Gi))
-  Gi[NA.mark] <- 0
-  X2 <- cbind(X,Z%*%Gi)
+  NA.mark <- which(is.na(Mi))
+  Mi[NA.mark] <- 0
+  X2 <- cbind(X,Z%*%Mi)
   temp <- rep(0,n.line)
   temp[NA.mark] <- 1
   not.NA <- which(Z%*%temp!=1)
@@ -65,7 +65,7 @@ score.calc <- function(G) {
   H2inv <- Hinv[not.NA,not.NA]
   } else {
   n2 <- n
-  X2 <- cbind(X,Z%*%Gi)
+  X2 <- cbind(X,Z%*%Mi)
   y2 <- y
   H2inv <- Hinv
   }
@@ -104,9 +104,9 @@ score.calc <- function(G) {
   if (n.core > 1) {
     it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
     library(multicore)
-    scores <- unlist(mclapply(it,function(markers){score.calc(G[,markers])}))
+    scores <- unlist(mclapply(it,function(markers){score.calc(M[,markers])}))
    } else {
-    scores <- score.calc(G)
+    scores <- score.calc(M)
    }      
   return(scores)
 } #end function

@@ -9,17 +9,17 @@ Performs genome-wide association analysis based on the mixed model
 
 \deqn{y = X \beta + Z g + \varepsilon}
 
-where \eqn{\beta} is a vector of fixed effects that can model both environmental factors and population structure.  The variable \eqn{g} models the genetic background of each line as a random effect with \eqn{Var[g] = A \sigma^2_A}, where A is the additive relationship matrix.  The residual variance is \eqn{Var[\varepsilon] = I \sigma_e^2}.
+where \eqn{\beta} is a vector of fixed effects that can model both environmental factors and population structure.  The variable \eqn{g} models the genetic background of each line as a random effect with \eqn{Var[g] = A \sigma^2}, where A is the additive relationship matrix estimated with \code{\link{A.mat}}.  The residual variance is \eqn{Var[\varepsilon] = I \sigma_e^2}.
 }
 \usage{
-GWA(y, G, Z=NULL, X=NULL, min.MAF=0.05, n.core=1, check.rank=FALSE)
+GWA(y, M, Z=NULL, X=NULL, min.MAF=0.05, n.core=1, check.rank=FALSE)
 }
 
 \arguments{
   \item{y}{
 Vector (\eqn{n \times 1}) of observations.  Missing values (NA) are omitted.
 }
-  \item{G}{
+  \item{M}{
 Matrix (\eqn{t \times m}) of genotypes for \eqn{t} lines with \eqn{m} bi-allelic markers.
 Genotypes should be coded as \{-1,0,1\} = \{aa,Aa,AA\}.  Fractional (imputed) and missing (NA) values are
 allowed.  
@@ -62,17 +62,17 @@ Nat. Genet. 42:348-354.
 
 \examples{
 #random population of 200 lines with 1000 markers
-G <- matrix(rep(0,200*1000),200,1000)
+M <- matrix(rep(0,200*1000),200,1000)
 for (i in 1:200) {
-  G[i,] <- ifelse(runif(1000)<0.5,-1,1)
+  M[i,] <- ifelse(runif(1000)<0.5,-1,1)
 }
 
 QTL <- 100*(1:5) #pick 5 QTL
 u <- rep(0,1000) #marker effects
 u[QTL] <- 1
-g <- as.vector(crossprod(t(G),u))
+g <- as.vector(crossprod(t(M),u))
 h2 <- 0.5
 y <- g + rnorm(200,mean=0,sd=sqrt((1-h2)/h2*var(g)))
 
-scores <- GWA(y=y,G=G)
+scores <- GWA(y=y,M=M)
 }
