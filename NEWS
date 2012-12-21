@@ -1,3 +1,7 @@
+Changes in 4.1:
+* Replaced function GWA with GWAS for association mapping.  Improvements include (1) P3D is now optional, (2) multiple phenotypes handled, (3) Manhattan and qq plots are generated, (4) uses data frame for input.
+* Changed default to reduce=FALSE in kin.blup
+
 Changes in 4.0:
 
 * kinship.BLUP is no longer being improved.  It has been replaced by kin.blup, which has a more intuitve interface.

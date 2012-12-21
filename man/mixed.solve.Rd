@@ -44,7 +44,7 @@ Array with two elements specifying the lower and upper bound for the ridge param
 If TRUE, standard errors are calculated.
 }
   \item{return.Hinv}{
-If TRUE, the function returns the inverse of \eqn{H = Z K Z' + \lambda I}.  This is useful for \code{\link{GWA}}.
+If TRUE, the function returns the inverse of \eqn{H = Z K Z' + \lambda I}.  This is useful for \code{\link{GWAS}}.
 }
 }
 \details{

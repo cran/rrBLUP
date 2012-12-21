@@ -60,7 +60,8 @@ svd.ZBt <- svd(ZBt,nu=n)
 U <- svd.ZBt$u
 phi <- c(svd.ZBt$d^2,rep(0,n-m))
 SZBt <- S %*% ZBt
-svd.SZBt <- svd(SZBt)
+svd.SZBt <- try(svd(SZBt),silent=TRUE)
+if (class(svd.SZBt)=="try-error") {svd.SZBt <- svd(SZBt+matrix(1e-10,nrow=nrow(SZBt),ncol=ncol(SZBt)))}
 QR <- qr(cbind(X,svd.SZBt$u))
 Q <- qr.Q(QR,complete=TRUE)[,(p+1):n]
 R <- qr.R(QR)[p+1:m,p+1:m]

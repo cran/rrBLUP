@@ -35,7 +35,7 @@ cov.W.shrink <- function(W) {
 	print(paste("Shrinkage intensity:",round(delta,2)))
 	return(target*delta + (1-delta)*S)
 }
-
+X <- as.matrix(X)
 n <- nrow(X)
 frac.missing <- apply(X,2,function(x){length(which(is.na(x)))/n})
 missing <- max(frac.missing) > 0
@@ -65,7 +65,11 @@ if (!missing) {
 		A <- tcrossprod(W)/var.A/m	
 	}
 	rownames(A) <- rownames(X)
-	return(A)
+	if (return.imputed) {
+		return(list(A=A,imputed=X))		
+	} else {
+		return(A)
+	}
 } else {
     #impute
     isna <- which(is.na(W)) 
