@@ -1,3 +1,7 @@
+Changes in 4.2:
+* shrink=FALSE is now the default in A.mat
+* Only return imputed markers in A.mat when impute=TRUE
+
 Changes in 4.1:
 * Replaced function GWA with GWAS for association mapping.  Improvements include (1) P3D is now optional, (2) multiple phenotypes handled, (3) Manhattan and qq plots are generated, (4) uses data frame for input.
 * Changed default to reduce=FALSE in kin.blup

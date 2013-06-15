@@ -41,7 +41,7 @@ An array of strings containing the names of columns that should be included as c
 When PEV=TRUE, the function returns the prediction error variance for the genotypic values (\eqn{PEV_i = Var[g^*_i-g_i]}). 
 }
 \item{n.core}{
-Specifies the number of cores to use for parallel execution of the Gaussian kernel method.  Requires R package multicore and cannot be used with the R GUI.
+Specifies the number of cores to use for parallel execution of the Gaussian kernel method (use only at UNIX command line).
 }
 \item{theta.seq}{
 The scale parameter for the Gaussian kernel is set by maximizing the restricted log-likelihood over a grid of values. By default, the grid is constructed by dividing the interval (0,max(K)] into 10 points.  Passing a numeric array to this variable (theta.seq = "theta sequence") will specify a different set of grid points (e.g., for large problems you might want fewer than 10).  

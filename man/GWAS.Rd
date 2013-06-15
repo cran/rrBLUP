@@ -36,7 +36,7 @@ Number of principal components to include as fixed effects.  Default is 0 (equal
 Specifies the minimum minor allele frequency (MAF).  If a marker has a MAF less than min.MAF, it is assigned a zero score.  
 }
 \item{n.core}{
-For Mac, Linux, and UNIX users, setting n.core > 1 will enable parallel execution on a machine with multiple cores. R package multicore must be installed for this to work.   
+Setting n.core > 1 will enable parallel execution on a machine with multiple cores (use only at UNIX command line).  
 }
 \item{P3D}{
 When P3D=TRUE, variance components are estimated by REML only once, without any markers in the model.  When P3D=FALSE, variance components are estimated by REML for each marker separately. 

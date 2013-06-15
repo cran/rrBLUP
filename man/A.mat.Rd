@@ -9,7 +9,7 @@ Calculates the realized additive relationship matrix.
 }
 \usage{
 A.mat(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,
-      n.core=1,shrink=NULL,return.imputed=FALSE)
+      n.core=1,shrink=FALSE,return.imputed=FALSE)
 }
 
 \arguments{
@@ -24,16 +24,16 @@ Minimum minor allele frequency. The A matrix is not sensitive to rare alleles, s
 Maximum proportion of missing data; default removes completely missing markers.
 }
 \item{impute.method}{
-There are two options.  The default is "mean", which imputes with the mean for each marker.  The "EM" option imputes with an EM algorithm (see details).
+There are two options. The default is "mean", which imputes with the mean for each marker.  The "EM" option imputes with an EM algorithm (see details).
 }
 \item{tol}{
 Specifies the convergence criterion for the EM algorithm (see details). 
 }
 \item{n.core}{
-Specifies the number of cores to use for parallel execution of the EM algorithm. 
+Specifies the number of cores to use for parallel execution of the EM algorithm (use only at UNIX command line).
 }
 \item{shrink}{
-Default behavior (shrink=NULL) is to use shrinkage estimation (see details) when the # of markers is less than 5 times the # of lines (m < 5n).  To use shrinkage when m > 5n, set shrink=TRUE.  To turn off shrinkage when m < 5n, set shrink=FALSE. 
+Set shrink=TRUE to use the shrinkage estimation procedure (see Details).  
 }
 \item{return.imputed}{
 When TRUE, the imputed marker matrix is returned.  
@@ -44,11 +44,9 @@ At high marker density, the relationship matrix is estimated as \eqn{A=W W'/c}, 
 
 The EM imputation algorithm is based on the multivariate normal distribution and was designed for use with GBS (genotyping-by-sequencing) markers, which tend to be high density but with lots of missing data.  Details are given in Poland et al. (2012). The EM algorithm stops at iteration \eqn{t} when the RMS error = \eqn{n^{-1} \|A_{t} - A_{t-1}\|_2} < tol.  
 
-At low marker density, shrinkage estimation can improve the estimate of the relationship matrix and the accuracy of GEBV for lines with low accuracy phenotypes (Endelman and Jannink 2012).  The shrinkage intensity ranges from 0 (no shrinkage, same estimator as high density formula) to 1 (completely shrunk to \eqn{(1+f)I}). The shrinkage intensity is chosen to minimize the expected mean-squared error and printed to the screen as output. 
+At low marker density (m < n), shrinkage estimation can improve the estimate of the relationship matrix and the accuracy of GEBVs for lines with low accuracy phenotypes (Endelman and Jannink 2012).  The shrinkage intensity ranges from 0 (no shrinkage, same estimator as high density formula) to 1 (completely shrunk to \eqn{(1+f)I}). The shrinkage intensity is chosen to minimize the expected mean-squared error and printed to the screen as output. 
 
 The shrinkage and EM options are designed for opposite scenarios (low vs. high density) and cannot be used simultaneously. 
-
-The multicore functionality only works for Mac, Linux, and UNIX users who have installed R package multicore. Do not use this option from the R GUI; you must execute from the command line.
 
 When the EM algorithm is used, the imputed alleles can lie outside the interval [-1,1].  Polymorphic markers that do not meet the min.MAF and max.missing criteria are not imputed.
 }

@@ -65,9 +65,9 @@ if (K.method == "RR") {
   }
 
   if (n.core > 1) {
-    library(multicore)
+    library(parallel)
     it <- split(theta,factor(cut(theta,n.core,labels=FALSE)))
-    soln <- unlist(mclapply(it,ms.fun),recursive=FALSE)
+    soln <- unlist(mclapply(it,ms.fun,mc.cores=n.core),recursive=FALSE)
   } else {
     soln <- ms.fun(theta)
   }      

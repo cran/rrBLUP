@@ -43,7 +43,7 @@ For K.method = "GAUSS" or "EXP", the number of points to use in the log-likeliho
 Either "REML" (default) or "ML".
 }
 \item{n.core}{
-For Mac, Linux, and UNIX users, setting n.core > 1 will enable parallel execution on a machine with multiple cores. R package multicore must be installed for this to work.  Do not run multicore from within the R GUI; you must use the command line.   
+Setting n.core > 1 will enable parallel execution of the Gaussian kernel computation (use only at UNIX command line).   
 }
 }
 \value{

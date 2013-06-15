@@ -244,8 +244,8 @@ for (i in 1:n.phenos) {
 
 	if (n.core > 1) {
     	it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-	    library(multicore)
-    	scores <- unlist(mclapply(it,function(markers){score.calc(M[ix.pheno,markers])}))
+	    library(parallel)
+    	scores <- unlist(mclapply(it,function(markers){score.calc(M[ix.pheno,markers])},mc.cores=n.core))
 	 } else {
     	scores <- score.calc(M[ix.pheno,])
 	 }

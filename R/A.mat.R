@@ -1,4 +1,4 @@
-A.mat <- function(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,n.core=1,shrink=NULL,return.imputed=FALSE){
+A.mat <- function(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,n.core=1,shrink=FALSE,return.imputed=FALSE){
 
 impute.EM <- function(W, cov.mat, mean.vec) {
 	n <- nrow(W)
@@ -35,6 +35,7 @@ cov.W.shrink <- function(W) {
 	print(paste("Shrinkage intensity:",round(delta,2)))
 	return(target*delta + (1-delta)*S)
 }
+
 X <- as.matrix(X)
 n <- nrow(X)
 frac.missing <- apply(X,2,function(x){length(which(is.na(x)))/n})
@@ -54,8 +55,6 @@ X[,mono] <- 2*tcrossprod(one,matrix(freq[mono],length(mono),1))-1
 freq.mat <- tcrossprod(one, matrix(freq[markers], m, 1))
 W <- X[, markers] + 1 - 2 *freq.mat 
 
-if (is.null(shrink)) {if (m < 5*n) {shrink <- TRUE} else {shrink <- FALSE}}
-
 if (!missing) {
     if (shrink) {
 		W.mean <- rowMeans(W)
@@ -65,6 +64,7 @@ if (!missing) {
 		A <- tcrossprod(W)/var.A/m	
 	}
 	rownames(A) <- rownames(X)
+	colnames(A) <- rownames(A)
 	if (return.imputed) {
 		return(list(A=A,imputed=X))		
 	} else {
@@ -74,7 +74,8 @@ if (!missing) {
     #impute
     isna <- which(is.na(W)) 
 	W[isna] <- 0
-	if ((impute.method=="em")|(impute.method=="EM")) {
+	
+	if (toupper(impute.method)=="EM") {
 		if (m < n) {
 			print("Linear dependency among the lines: imputing with mean instead of EM algorithm.")
 		} else {
@@ -94,9 +95,9 @@ if (!missing) {
 				cov.mat.old <- cov.mat.new
 				mean.vec.old <- mean.vec.new
 				if (n.core > 1) {
-            		library(multicore)
+            		library(parallel)
 					it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-					pieces <- mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)})
+					pieces <- mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)},mc.cores=n.core)
 				} else {
 					pieces <- list()
 					pieces[[1]] <- impute.EM(W,cov.mat.old,mean.vec.old)
@@ -115,9 +116,13 @@ if (!missing) {
 				print(err,digits=3)
 			}
 			rownames(A.new) <- rownames(X)
+			colnames(A.new) <- rownames(A.new)
+
 			if (return.imputed) {
-				X[,markers] <- W.imp - 1 + 2*freq.mat
-				return(list(A=A.new,imputed=X))
+				Ximp <- W.imp - 1 + 2*freq.mat
+				colnames(Ximp) <- colnames(X)[markers]
+				rownames(Ximp) <- rownames(X)
+				return(list(A=A.new,imputed=Ximp))
 			} else {
 				return(A.new)
 			}
@@ -134,10 +139,13 @@ if (!missing) {
 		A <- tcrossprod(W)/var.A/m	
 	}
 	rownames(A) <- rownames(X)
+	colnames(A) <- rownames(A)
 
 	if (return.imputed) {
-		X[,markers] <- W - 1 + 2*freq.mat
-		return(list(A=A,imputed=X))		
+		Ximp <- W - 1 + 2*freq.mat
+		colnames(Ximp) <- colnames(X)[markers]
+		rownames(Ximp) <- rownames(X)
+		return(list(A=A,imputed=Ximp))		
 	} else {
 		return(A)
 	}
