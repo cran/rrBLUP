@@ -1,3 +1,6 @@
+Changes in 4.3:
+* Old-style vignettes are no longer allowed on CRAN, so they have been moved to http://potatobreeding.cals.wisc.edu/software.
+
 Changes in 4.2:
 * shrink=FALSE is now the default in A.mat
 * Only return imputed markers in A.mat when impute=TRUE

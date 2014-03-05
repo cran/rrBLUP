@@ -1,17 +1,14 @@
 Package: rrBLUP
 Title: Ridge regression and other kernels for genomic selection
-Version: 4.2
-Author: Jeffrey Endelman
+Version: 4.3
+Author: Jeffrey Endelman 
 Maintainer: Jeffrey Endelman <endelman@wisc.edu>
 Depends: R (>= 2.14)
 Suggests: parallel
-Description: Software for genomic prediction with the RR-BLUP mixed
-        model. One application is to estimate marker effects by ridge
-        regression; alternatively, BLUPs can be calculated based on an
-        additive relationship matrix or a Gaussian kernel.
+Description: Software for genomic prediction with the RR-BLUP mixed model. One application is to estimate marker effects by ridge regression; alternatively, BLUPs can be calculated based on an additive relationship matrix or a Gaussian kernel.
 License: GPL-3
-LazyLoad: yes
-Packaged: 2013-06-15 18:49:09 UTC; jeffendelman
+URL: http://potatobreeding.cals.wisc.edu/software
+Packaged: 2014-03-05 23:29:59 UTC; endelman
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2013-06-18 18:22:09
+Date/Publication: 2014-03-06 08:05:31

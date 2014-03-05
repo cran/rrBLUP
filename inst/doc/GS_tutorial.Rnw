@@ -1,4 +1,0 @@
-%\VignetteIndexEntry{GS with rrBLUP 4}
-\documentclass{article}
-\begin{document}
-\end{document}
