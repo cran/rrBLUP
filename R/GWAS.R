@@ -242,10 +242,9 @@ for (i in 1:n.phenos) {
 		print("Variance components estimated. Testing markers.")
 	}
 
-	if (n.core > 1) {
+if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
     	it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-	    library(parallel)
-    	scores <- unlist(mclapply(it,function(markers){score.calc(M[ix.pheno,markers])},mc.cores=n.core))
+    	scores <- unlist(parallel::mclapply(it,function(markers){score.calc(M[ix.pheno,markers])},mc.cores=n.core))
 	 } else {
     	scores <- score.calc(M[ix.pheno,])
 	 }
@@ -257,11 +256,13 @@ for (i in 1:n.phenos) {
 }
 
 if (plot) {
-	if (dev.cur()==dev.next()) {
-      dev.new()   
-    } else {
-      dev.set(dev.next())
-    }
+	if (length(grep("RStudio",names(dev.cur())))==0) { 
+		if (dev.cur()==dev.next()) {
+    	  dev.new()   
+	    } else {
+    	  dev.set(dev.next())
+	    }
+	}
 	par(mfrow=c(p1,p2))
 	for (j in 1:n.phenos) {
 		manhattan(cbind(map,all.scores[,j]))

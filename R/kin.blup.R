@@ -1,4 +1,4 @@
-kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE)  {
+kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE,R=NULL)  {
 
 	make.full <- function(X) {
 		svd.X <- svd(X)
@@ -11,15 +11,22 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 	if (is.na(ypos)) {
 		stop("Phenotype name does not appear in data.")
 	} else {
-		y <- data[,ypos]
+		y <- as.numeric(data[,ypos])
 	}
+
+	if (!is.null(R)&(length(R)!=length(y))) {
+		stop("Length of R does not equal length of y")
+	}
+	
 	not.miss <- which(!is.na(y))
+	resid <- rep(NA,length(y))
 	if (length(not.miss)<length(y)) {
 		data <- data[not.miss,]
 		y <- y[not.miss]
+		if (!is.null(R)) {R <- R[not.miss]}
 	} 
 	n <- length(y)
-    
+   
 	X <- matrix(1,n,1)		
 	if (!is.null(fixed)) {
 		p <- length(fixed)
@@ -50,11 +57,11 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		Z[cbind(1:n,match(data[,gid.pos],gid))] <- 1
 		X2 <- make.full(X)
 		ans <- mixed.solve(y=y,X=X2,Z=Z,SE=PEV)
-		resid <- y-X2%*%ans$beta-Z%*%ans$u
+		resid[not.miss] <- y-X2%*%ans$beta-Z%*%ans$u
 		if (PEV) {
-			return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u,PEV=ans$u.SE^2,resid=resid))
+			return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u,PEV=ans$u.SE^2,resid=resid,pred=ans$u+as.numeric(colMeans(X2)%*%ans$beta)))
 		} else {
-			return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u,resid=resid))
+			return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u,resid=resid,pred=ans$u+as.numeric(colMeans(X2)%*%ans$beta)))
 		}
 	} else {
 
@@ -72,19 +79,30 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		Z <- matrix(0,n,v)
 		Z[cbind(1:n,match(data[,gid.pos],not.miss.gid))] <- 1
 	
+		if (!is.null(R)) {
+			sqrt.R <- sqrt(R)
+			X2 <- X/sqrt.R
+			y2 <- y/sqrt.R
+			Z2 <- Z/sqrt.R
+		} else {
+			X2 <- X
+			y2 <- y
+			Z2 <- Z
+		}
+
 		if ((n > v)&(reduce)) {
 			#transform
-			w <- sqrt(diag(crossprod(Z)))
-			X2 <- make.full(crossprod(Z,X)/w)
-			y2 <- crossprod(Z,y)/w
+			w <- sqrt(diag(crossprod(Z2)))
+			X2 <- make.full(crossprod(Z2,X2)/w)
+			y2 <- crossprod(Z2,y2)/w
 			Z2 <- cbind(diag(w),matrix(0,v,nrow(K)-v))
 			reduced <- TRUE
 		} else {
-			X2 <- make.full(X)
-			y2 <- y
-			Z2 <- cbind(Z,matrix(0,n,nrow(K)-v))
+			X2 <- make.full(X2)
+			Z2 <- cbind(Z2,matrix(0,n,nrow(K)-v))			
 			reduced <- FALSE
 		}
+
 		rm(X,Z,y)
 	
 		if (!GAUSS) {
@@ -93,12 +111,12 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 			if (reduced) {
 				resid <- NULL
 			} else {			
-				resid <- y2-X2%*%ans$beta-Z2%*%ans$u
+				resid[not.miss] <- y2-X2%*%ans$beta-Z2%*%ans$u
 			}
 			if (PEV) {
-				return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid))
+				return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))
 			} else {
-				return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u[ix],resid=resid))
+				return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u[ix],resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))
 			}
 		
 		} else {
@@ -118,10 +136,9 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 	    	return(soln)
   		}
 
-		if (n.core > 1) {
-    		library(parallel)
+	if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
     		it <- split(theta,factor(cut(theta,n.core,labels=FALSE)))
-	    	soln <- unlist(mclapply(it,ms.fun,mc.cores=n.core),recursive=FALSE)
+	    	soln <- unlist(parallel::mclapply(it,ms.fun,mc.cores=n.core),recursive=FALSE)
   		} else {
     		soln <- ms.fun(theta)
 	  	}      
@@ -135,13 +152,13 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		if (reduced) {
 			resid <- NULL
 		} else {			
-			resid <- y2-X2%*%ans$beta-Z2%*%ans$u
+			resid[not.miss] <- y2-X2%*%ans$beta-Z2%*%ans$u
 		}
 
 		if (PEV) {
-			return(list(Vg=ans$Vu,Ve=ans$Ve,profile=profile,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid))
+			return(list(Vg=ans$Vu,Ve=ans$Ve,profile=profile,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))
 		} else {
-			return(list(Vg=ans$Vu,Ve=ans$Ve,profile=profile,g=ans$u[ix],resid=resid))
+			return(list(Vg=ans$Vu,Ve=ans$Ve,profile=profile,g=ans$u[ix],resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))
 		}	
 
 		} #else GAUSS

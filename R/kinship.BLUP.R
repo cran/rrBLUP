@@ -64,10 +64,9 @@ if (K.method == "RR") {
     return(soln)
   }
 
-  if (n.core > 1) {
-    library(parallel)
+  if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
     it <- split(theta,factor(cut(theta,n.core,labels=FALSE)))
-    soln <- unlist(mclapply(it,ms.fun,mc.cores=n.core),recursive=FALSE)
+    soln <- unlist(parallel::mclapply(it,ms.fun,mc.cores=n.core),recursive=FALSE)
   } else {
     soln <- ms.fun(theta)
   }      

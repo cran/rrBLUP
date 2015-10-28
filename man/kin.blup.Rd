@@ -9,7 +9,7 @@ Genotypic value prediction by G-BLUP, where the genotypic covariance G can be ad
 }
 \usage{
 kin.blup(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,
-         PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE)
+         PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE,R=NULL)
 }
 
 \arguments{
@@ -49,12 +49,15 @@ The scale parameter for the Gaussian kernel is set by maximizing the restricted 
 \item{reduce}{
 To speed up one-step predictions when there are repeated observations, try reduce=TRUE to reduce the dimension of the problem to equal the number of lines (see details). 
 }
+\item{R}{
+Optional vector to allow for heterogeneous error variance: \eqn{Var[\varepsilon_i] = R_i \sigma^2_e}.  The length of R must equal the number of rows in the phenotype data frame. 
+}
 }
 \details{
 This function is a wrapper for \code{\link{mixed.solve}} and thus solves mixed models of the form:
 \deqn{y = X \beta + [Z \: 0] g + \varepsilon}
 where \eqn{\beta} is a vector of fixed effects, \eqn{g} is a vector of random genotypic values with covariance 
-\eqn{G = Var[g]}, and the residuals are i.i.d. (\eqn{Var[\varepsilon] = I \: V_e}).  The design matrix for the genetic values has been partitioned to illustrate that not all lines need phenotypes (i.e., for genomic selection).  Unlike \code{\link{mixed.solve}}, this function does not return estimates of the fixed effects, only the BLUP solution for the genotypic values.  It was designed to replace \code{\link{kinship.BLUP}} and to relieve the user of having to explicitly construct design matrices.  Variance components are estimated by REML and BLUP values are returned for every entry in K, regardless of whether it has been phenotyped.  The rownames of K must match the genotype labels in the data frame for phenotyped lines; missing phenotypes (NA) are simply omitted.  
+\eqn{G = Var[g]}, and the residuals follow \eqn{Var[\varepsilon_i] = R_i \sigma^2_e}, with \eqn{R_i = 1} by default.  The design matrix for the genetic values has been partitioned to illustrate that not all lines need phenotypes (i.e., for genomic selection).  Unlike \code{\link{mixed.solve}}, this function does not return estimates of the fixed effects, only the BLUP solution for the genotypic values.  It was designed to replace \code{\link{kinship.BLUP}} and to relieve the user of having to explicitly construct design matrices.  Variance components are estimated by REML and BLUP values are returned for every entry in K, regardless of whether it has been phenotyped.  The rownames of K must match the genotype labels in the data frame for phenotyped lines; missing phenotypes (NA) are simply omitted.  
 
 Unlike its predecessor, this function does not handle marker data directly.  For breeding value prediction, the user must supply a relationship matrix, which can be calculated from markers with \code{\link{A.mat}}.  For Gaussian kernel predictions, pass the Euclidean distance matrix for K, which can be calculated with \code{\link{dist}}.  
 
@@ -71,6 +74,7 @@ The function always returns
 \item{$Ve}{REML estimate of the error variance}
 \item{$g}{BLUP solution for the genetic values}
 \item{$resid}{residuals}
+\item{$pred}{predicted genetic values, averaged over the fixed effects}
 }
 If PEV = TRUE, the list also includes
 \describe{

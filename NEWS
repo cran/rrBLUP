@@ -1,3 +1,8 @@
+Changes in 4.4:
+* Modified GWAS plot functionality to play nice with RStudio
+* kin.blup returns predicted values, averaged over the fixed effects
+* kin.blup allows specification of heterogeneous error variance
+
 Changes in 4.3:
 * Old-style vignettes are no longer allowed on CRAN, so they have been moved to http://potatobreeding.cals.wisc.edu/software.
 

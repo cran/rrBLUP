@@ -7,9 +7,11 @@ Genome-wide association analysis
 \description{
 Performs genome-wide association analysis based on the mixed model (Yu et al. 2006):
 
-\deqn{y = X \beta + Z g + \varepsilon}
+\deqn{y = X \beta + Z g + S \tau + \varepsilon}
 
-where \eqn{\beta} is a vector of fixed effects that can model both environmental factors and population structure.  The variable \eqn{g} models the genetic background of each line as a random effect with \eqn{Var[g] = K \sigma^2}.  The residual variance is \eqn{Var[\varepsilon] = I \sigma_e^2}.
+where \eqn{\beta} is a vector of fixed effects that can model both environmental factors and population structure.  
+The variable \eqn{g} models the genetic background of each line as a random effect with \eqn{Var[g] = K \sigma^2}.  
+The variable \eqn{\tau} models the additive SNP effect as a fixed effect.  The residual variance is \eqn{Var[\varepsilon] = I \sigma_e^2}.
 }
 \usage{
 GWAS(pheno, geno, fixed=NULL, K=NULL, n.PC=0,

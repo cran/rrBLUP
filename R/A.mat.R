@@ -94,10 +94,9 @@ if (!missing) {
 				A.old <- A.new
 				cov.mat.old <- cov.mat.new
 				mean.vec.old <- mean.vec.new
-				if (n.core > 1) {
-            		library(parallel)
-					it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-					pieces <- mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)},mc.cores=n.core)
+				if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
+ 					it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
+					pieces <- parallel::mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)},mc.cores=n.core)
 				} else {
 					pieces <- list()
 					pieces[[1]] <- impute.EM(W,cov.mat.old,mean.vec.old)
