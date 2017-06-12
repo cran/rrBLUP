@@ -33,7 +33,7 @@ Specifies the convergence criterion for the EM algorithm (see details).
 Specifies the number of cores to use for parallel execution of the EM algorithm (use only at UNIX command line).
 }
 \item{shrink}{
-Set shrink=TRUE to use the shrinkage estimation procedure (see Details).  
+Set shrink=FALSE to disable shrinkage estimation.  See Details for how to enable shrinkage estimation. 
 }
 \item{return.imputed}{
 When TRUE, the imputed marker matrix is returned.  
@@ -44,10 +44,9 @@ At high marker density, the relationship matrix is estimated as \eqn{A=W W'/c}, 
 
 The EM imputation algorithm is based on the multivariate normal distribution and was designed for use with GBS (genotyping-by-sequencing) markers, which tend to be high density but with lots of missing data.  Details are given in Poland et al. (2012). The EM algorithm stops at iteration \eqn{t} when the RMS error = \eqn{n^{-1} \|A_{t} - A_{t-1}\|_2} < tol.  
 
-At low marker density (m < n), shrinkage estimation can improve the estimate of the relationship matrix and the accuracy of GEBVs for lines with low accuracy phenotypes (Endelman and Jannink 2012).  The shrinkage intensity ranges from 0 (no shrinkage, same estimator as high density formula) to 1 (completely shrunk to \eqn{(1+f)I}). The shrinkage intensity is chosen to minimize the expected mean-squared error and printed to the screen as output. 
+Shrinkage estimation can improve the accuracy of genome-wide marker-assisted selection, particularly at low marker density (Endelman and Jannink 2012). The shrinkage intensity ranges from 0 (no shrinkage) to 1 (\eqn{A=(1+f)I}). Two algorithms for estimating the shrinkage intensity are available.  The first is the method described in Endelman and Jannink (2012) and is specified by \code{shrink=list(method="EJ")}.  The second involves designating a random sample of the markers as simulated QTL and then regressing the A matrix based on the QTL against the A matrix based on the remaining markers (Yang et al. 2010; Mueller et al. 2015). The regression method is specified by \code{shrink=list(method="REG",n.qtl=100,n.rep=5)}, where the parameters \code{n.qtl} and \code{n.rep} can be varied to adjust the number of simulated QTL and number of replicates, respectively.  
 
-The shrinkage and EM options are designed for opposite scenarios (low vs. high density) and cannot be used simultaneously. 
-
+The shrinkage and EM-imputation options are designed for opposite scenarios (low vs. high density) and cannot be used simultaneously. 
 When the EM algorithm is used, the imputed alleles can lie outside the interval [-1,1].  Polymorphic markers that do not meet the min.MAF and max.missing criteria are not imputed.
 }
 \value{
@@ -63,7 +62,11 @@ If return.imputed = TRUE, the function returns a list containing
 \references{
 Endelman, J.B., and J.-L. Jannink. 2012. Shrinkage estimation of the realized relationship matrix. G3:Genes, Genomes, Genetics. 2:1405-1413. doi: 10.1534/g3.112.004259
 
+Mueller et al. 2015. Shrinkage estimation of the genomic relationship matrix can improve genomic estimated breeding values in the training set. Theor Appl Genet doi: 10.1007/s00122-015-2464-6
+
 Poland, J., J. Endelman et al. 2012. Genomic selection in wheat breeding using genotyping-by-sequencing. Plant Genome 5:103-113. doi: 10.3835/plantgenome2012.06.0006
+
+Yang et al. 2010. Common SNPs explain a large proportion of the heritability for human height. Nat. Genetics 42:565-569.
 }
 
 \examples{

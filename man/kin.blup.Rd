@@ -9,7 +9,7 @@ Genotypic value prediction by G-BLUP, where the genotypic covariance G can be ad
 }
 \usage{
 kin.blup(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,
-         PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE,R=NULL)
+         PEV=FALSE,n.core=1,theta.seq=NULL)
 }
 
 \arguments{
@@ -46,12 +46,6 @@ Specifies the number of cores to use for parallel execution of the Gaussian kern
 \item{theta.seq}{
 The scale parameter for the Gaussian kernel is set by maximizing the restricted log-likelihood over a grid of values. By default, the grid is constructed by dividing the interval (0,max(K)] into 10 points.  Passing a numeric array to this variable (theta.seq = "theta sequence") will specify a different set of grid points (e.g., for large problems you might want fewer than 10).  
 }
-\item{reduce}{
-To speed up one-step predictions when there are repeated observations, try reduce=TRUE to reduce the dimension of the problem to equal the number of lines (see details). 
-}
-\item{R}{
-Optional vector to allow for heterogeneous error variance: \eqn{Var[\varepsilon_i] = R_i \sigma^2_e}.  The length of R must equal the number of rows in the phenotype data frame. 
-}
 }
 \details{
 This function is a wrapper for \code{\link{mixed.solve}} and thus solves mixed models of the form:
@@ -63,9 +57,8 @@ Unlike its predecessor, this function does not handle marker data directly.  For
 
 In the terminology of mixed models, both the "fixed" and "covariate" variables are fixed effects (\eqn{\beta} in the above equation): the former are treated as factors with distinct levels while the latter are continuous with one coefficient per variable.  The population mean is automatically included as a fixed effect.
 
-The prediction error variance (PEV) is the square of the SE of the BLUPs (see \code{\link{mixed.solve}}) and can be used to estimate the expected accuracy of BLUP predictions according to \eqn{r^2_i = 1 - \frac{PEV_i}{V_g K_{ii}}} (Clark et al. 2012).
+The prediction error variance (PEV) is the square of the SE of the BLUPs (see \code{\link{mixed.solve}}) and can be used to estimate the expected accuracy of BLUP predictions according to \eqn{r^2_i = 1 - \frac{PEV_i}{V_g K_{ii}}}.
 
-When the number of observations exceeds the number of lines, as happens with replicated trials or measurements, genomic predictions can be done by explicitly modeling the environmental variables in a one-step approach.  For unbalanced trials, this accounts for differing degrees of replication but is more computationally intensive than a two-step model.  When reduce=TRUE, the original mixed model is multiplied by \eqn{L = (Z'Z)^{-1/2}Z'} to generate a new mixed model with dimension equal to the number of lines, i.i.d. residuals, and the same variance parameters as in the original model.  (In general, only linear combinations of the original fixed effects parameters \eqn{\beta} are estimable in the reduced model--this is handled by the software.)  The reduced problem is similar to a two-step prediction with rotation of the adjusted means (Schulz-Streeck et al. 2012), but it is one-step in the sense that variance components and BLUPs are only estimated once. A value of NULL is returned for the residuals when reduce=TRUE.
 }
 \value{
 The function always returns 
@@ -87,11 +80,7 @@ If GAUSS = TRUE, the list also includes
 }
 
 \references{
-Clark, S.A., J.M. Hickey, H.D. Daetwyler, and J.H.J. van der Werf. 2012. The importance of information on relatives for the prediction of genomic breeding values and the implications for the makeup of reference data sets in livestock breeding schemes. Genetics, Selection, Evolution 44:4. doi:10.1186/1297-9686-44-4.
-
 Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255. doi: 10.3835/plantgenome2011.08.0024
-
-Schulz-Streeck, T., J.O. Ogutu and H.-P. Piepho. 2012. Comparisons of single-stage and two-stage approaches to genomic selection. Theoretical and Applied Genetics. doi: 10.1007/s00122-012-1960-1
 }
 
 \examples{

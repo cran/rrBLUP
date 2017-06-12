@@ -1,3 +1,7 @@
+Changes in 4.5:
+* Two shrinkage options now in A.mat
+* Removed "reduce" and heterogeneous error options
+
 Changes in 4.4:
 * Modified GWAS plot functionality to play nice with RStudio
 * kin.blup returns predicted values, averaged over the fixed effects

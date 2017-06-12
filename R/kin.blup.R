@@ -1,4 +1,4 @@
-kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,PEV=FALSE,n.core=1,theta.seq=NULL,reduce=FALSE,R=NULL)  {
+kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NULL,PEV=FALSE,n.core=1,theta.seq=NULL)  {
 
 	make.full <- function(X) {
 		svd.X <- svd(X)
@@ -14,16 +14,11 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		y <- as.numeric(data[,ypos])
 	}
 
-	if (!is.null(R)&(length(R)!=length(y))) {
-		stop("Length of R does not equal length of y")
-	}
-	
 	not.miss <- which(!is.na(y))
-	resid <- rep(NA,length(y))
+	resid <- vector("numeric",length(y))*NA
 	if (length(not.miss)<length(y)) {
 		data <- data[not.miss,]
 		y <- y[not.miss]
-		if (!is.null(R)) {R <- R[not.miss]}
 	} 
 	n <- length(y)
    
@@ -49,7 +44,6 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 
 	not.miss.gid <- as.character(unique(data[,gid.pos]))
 	if (is.null(K)) {
-		if (reduce) {print("reduce=TRUE is not valid for independent genotypes. Proceeding without reduction.")}
 		gid <- not.miss.gid
 		v <- length(gid)
 		Z <- matrix(0,n,v)
@@ -79,40 +73,13 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		Z <- matrix(0,n,v)
 		Z[cbind(1:n,match(data[,gid.pos],not.miss.gid))] <- 1
 	
-		if (!is.null(R)) {
-			sqrt.R <- sqrt(R)
-			X2 <- X/sqrt.R
-			y2 <- y/sqrt.R
-			Z2 <- Z/sqrt.R
-		} else {
-			X2 <- X
-			y2 <- y
-			Z2 <- Z
-		}
-
-		if ((n > v)&(reduce)) {
-			#transform
-			w <- sqrt(diag(crossprod(Z2)))
-			X2 <- make.full(crossprod(Z2,X2)/w)
-			y2 <- crossprod(Z2,y2)/w
-			Z2 <- cbind(diag(w),matrix(0,v,nrow(K)-v))
-			reduced <- TRUE
-		} else {
-			X2 <- make.full(X2)
-			Z2 <- cbind(Z2,matrix(0,n,nrow(K)-v))			
-			reduced <- FALSE
-		}
-
-		rm(X,Z,y)
+		X2 <- make.full(X)
+		Z2 <- cbind(Z,matrix(0,n,nrow(K)-v))			
 	
 		if (!GAUSS) {
-			ans <- mixed.solve(y=y2,X=X2,Z=Z2,K=K,SE=PEV)
+			ans <- mixed.solve(y=y,X=X2,Z=Z2,K=K,SE=PEV)
 			ix <- match(gid,rownames(ans$u))
-			if (reduced) {
-				resid <- NULL
-			} else {			
-				resid[not.miss] <- y2-X2%*%ans$beta-Z2%*%ans$u
-			}
+			resid[not.miss] <- y-X2%*%ans$beta-Z2%*%ans$u
 			if (PEV) {
 				return(list(Vg=ans$Vu,Ve=ans$Ve,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))
 			} else {
@@ -131,7 +98,7 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 	    	soln <- list()
     		n.t <- length(theta)
 	    	for (i in 1:n.t) {
-   			   soln[[i]] <- mixed.solve(y=y2,X=X2,Z=Z2,K=exp(-(K/theta[i])^2),SE=PEV)
+   			   soln[[i]] <- mixed.solve(y=y,X=X2,Z=Z2,K=exp(-(K/theta[i])^2),SE=PEV)
     		}
 	    	return(soln)
   		}
@@ -148,12 +115,7 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		ans <- soln[[which.max(LL)]]	
 		profile <- cbind(theta,LL)
 		ix <- match(gid,rownames(ans$u))
-
-		if (reduced) {
-			resid <- NULL
-		} else {			
-			resid[not.miss] <- y2-X2%*%ans$beta-Z2%*%ans$u
-		}
+		resid[not.miss] <- y-X2%*%ans$beta-Z2%*%ans$u
 
 		if (PEV) {
 			return(list(Vg=ans$Vu,Ve=ans$Ve,profile=profile,g=ans$u[ix],PEV=ans$u.SE[ix]^2,resid=resid,pred=ans$u[ix]+as.numeric(colMeans(X2)%*%ans$beta)))

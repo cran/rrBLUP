@@ -1,5 +1,28 @@
 A.mat <- function(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,n.core=1,shrink=FALSE,return.imputed=FALSE){
 
+if (mode(shrink)=="list") {
+	shrink.method <- shrink$method
+	if (!is.element(shrink.method,c("EJ","REG"))) {stop("Invalid shrinkage method.")}
+	shrink.iter <- shrink$n.iter
+	n.qtl <- shrink$n.qtl
+	shrink <- TRUE
+} else {
+	if (shrink) { #included for backwards compatibility
+		shrink.method <- "EJ"
+	}
+}
+
+shrink.coeff <- function(i,W,n.qtl){
+	m <- ncol(W)
+	n <- nrow(W)
+	qtl <- sample(1:m,n.qtl)
+	A.mark <- tcrossprod(W[,-qtl])/(m-n.qtl)
+	A.qtl <- tcrossprod(W[,qtl])/n.qtl
+	x <- as.vector(A.mark - mean(diag(A.mark))*diag(n))
+	y <- as.vector(A.qtl - mean(diag(A.qtl))*diag(n))
+	return(1-cov(y,x)/var(x))
+}
+
 impute.EM <- function(W, cov.mat, mean.vec) {
 	n <- nrow(W)
 	m <- ncol(W)
@@ -57,9 +80,22 @@ W <- X[, markers] + 1 - 2 *freq.mat
 
 if (!missing) {
     if (shrink) {
-		W.mean <- rowMeans(W)
-		cov.W <- cov.W.shrink(W)
-		A <- (cov.W+tcrossprod(W.mean))/var.A	
+    	if (shrink.method=="EJ") {
+			W.mean <- rowMeans(W)
+			cov.W <- cov.W.shrink(W)
+			A <- (cov.W+tcrossprod(W.mean))/var.A	
+		} else {
+			if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
+				it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
+				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl)},W=W,n.qtl=n.qtl,mc.cores=n.core))
+			} else {
+				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl)
+			}
+			delta <- mean(delta,na.rm=T)
+			print(paste("Shrinkage intensity:",round(delta,2)))
+			A <- tcrossprod(W)/var.A/m
+			A <- (1-delta)*A + delta*mean(diag(A))*diag(n)					
+		}
 	} else {
 		A <- tcrossprod(W)/var.A/m	
 	}
@@ -131,9 +167,22 @@ if (!missing) {
   		
   	#imputing with mean
 	if (shrink) {
-		W.mean <- rowMeans(W)
-		cov.W <- cov.W.shrink(W)
-		A <- (cov.W+tcrossprod(W.mean))/var.A	
+    	if (shrink.method=="EJ") {
+			W.mean <- rowMeans(W)
+			cov.W <- cov.W.shrink(W)
+			A <- (cov.W+tcrossprod(W.mean))/var.A	
+		} else {
+			if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
+				it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
+				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl)},W=W,n.qtl=n.qtl,mc.cores=n.core))
+			} else {
+				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl)
+			}
+			delta <- mean(delta,na.rm=T)
+			print(paste("Shrinkage intensity:",round(delta,2)))
+			A <- tcrossprod(W)/var.A/m
+			A <- (1-delta)*A + delta*mean(diag(A))*diag(n)					
+		}
 	} else {
 		A <- tcrossprod(W)/var.A/m	
 	}
