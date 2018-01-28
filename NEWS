@@ -1,3 +1,7 @@
+Changes in 4.6:
+* Fixed error in reference manual regarding shrinkage option for A.mat
+* Changed normalization of A in Yang/Mueller shrinkage method
+
 Changes in 4.5:
 * Two shrinkage options now in A.mat
 * Removed "reduce" and heterogeneous error options

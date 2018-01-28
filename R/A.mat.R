@@ -12,12 +12,12 @@ if (mode(shrink)=="list") {
 	}
 }
 
-shrink.coeff <- function(i,W,n.qtl){
+shrink.coeff <- function(i,W,n.qtl,p){
 	m <- ncol(W)
 	n <- nrow(W)
 	qtl <- sample(1:m,n.qtl)
-	A.mark <- tcrossprod(W[,-qtl])/(m-n.qtl)
-	A.qtl <- tcrossprod(W[,qtl])/n.qtl
+	A.mark <- tcrossprod(W[,-qtl])/sum(2*p[-qtl]*(1-p[-qtl]))
+	A.qtl <- tcrossprod(W[,qtl])/sum(2*p[qtl]*(1-p[qtl]))
 	x <- as.vector(A.mark - mean(diag(A.mark))*diag(n))
 	y <- as.vector(A.qtl - mean(diag(A.qtl))*diag(n))
 	return(1-cov(y,x)/var(x))
@@ -87,9 +87,9 @@ if (!missing) {
 		} else {
 			if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
 				it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
-				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl)},W=W,n.qtl=n.qtl,mc.cores=n.core))
+				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl,p){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl,p=p)},W=W,n.qtl=n.qtl,p=freq.mat[1,],mc.cores=n.core))
 			} else {
-				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl)
+				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl,p=freq.mat[1,])
 			}
 			delta <- mean(delta,na.rm=T)
 			print(paste("Shrinkage intensity:",round(delta,2)))
