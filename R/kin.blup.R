@@ -59,7 +59,7 @@ kin.blup <- function(data,geno,pheno,GAUSS=FALSE,K=NULL,fixed=NULL,covariate=NUL
 		}
 	} else {
 
-		if (class(K)=="dist") {K <- as.matrix(K)}
+		if (inherits(K,what="dist")) {K <- as.matrix(K)}
 		gid <- rownames(K)
 		ix.pheno <- match(not.miss.gid,gid)
 		miss.pheno.gid <- which(is.na(ix.pheno))

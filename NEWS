@@ -1,3 +1,6 @@
+Changes in 4.6.1:
+* Updated code to address changes in behavior of "class" in base R
+
 Changes in 4.6:
 * Fixed error in reference manual regarding shrinkage option for A.mat
 * Changed normalization of A in Yang/Mueller shrinkage method

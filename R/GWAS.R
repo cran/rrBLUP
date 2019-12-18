@@ -142,7 +142,7 @@ for (i in 1:m) {
 
 		W <- crossprod(X3,H2inv%*%X3)
 		Winv <- try(solve(W),silent=TRUE)
-		if (class(Winv)!="try-error") {
+		if (!inherits(Winv,what="try-error")) {
 			beta <- Winv %*% crossprod(X3,H2inv%*%y2)
 			resid <- y2 - X3 %*% beta
 			s2 <- as.double(crossprod(resid,H2inv%*%resid))/v2

@@ -46,7 +46,7 @@ if (n <= m + p) {
   if (!is.null(K)) {
     diag(K) <- diag(K) + 1e-6
   	B <- try(chol(K),silent=TRUE)
-  	if (class(B)=="try-error") {stop("K not positive semi-definite.")}
+  	if (inherits(B,what="try-error")) {stop("K not positive semi-definite.")}
   } # if is.null
 } 
 
@@ -61,12 +61,12 @@ U <- svd.ZBt$u
 phi <- c(svd.ZBt$d^2,rep(0,n-m))
 SZBt <- S %*% ZBt
 svd.SZBt <- try(svd(SZBt),silent=TRUE)
-if (class(svd.SZBt)=="try-error") {svd.SZBt <- svd(SZBt+matrix(1e-10,nrow=nrow(SZBt),ncol=ncol(SZBt)))}
+if (inherits(svd.SZBt,what="try-error")) {svd.SZBt <- svd(SZBt+matrix(1e-10,nrow=nrow(SZBt),ncol=ncol(SZBt)))}
 QR <- qr(cbind(X,svd.SZBt$u))
 Q <- qr.Q(QR,complete=TRUE)[,(p+1):n]
 R <- qr.R(QR)[p+1:m,p+1:m]
 ans <- try(solve(t(R^2), svd.SZBt$d^2),silent=TRUE)
-if (class(ans)=="try-error") {
+if (inherits(ans,what="try-error")) {
     spectral.method <- "eigen"
 } else {
     theta <- c(ans,rep(0, n - p - m))
