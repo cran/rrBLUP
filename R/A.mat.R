@@ -1,4 +1,6 @@
-A.mat <- function(X,min.MAF=NULL,max.missing=NULL,impute.method="mean",tol=0.02,n.core=1,shrink=FALSE,return.imputed=FALSE){
+A.mat <- function(X,min.MAF=NULL,max.missing=NULL,
+                  impute.method="mean",tol=0.02,n.core=1,
+                  shrink=FALSE,return.imputed=FALSE){
 
 if (mode(shrink)=="list") {
 	shrink.method <- shrink$method
@@ -85,9 +87,15 @@ if (!missing) {
 			cov.W <- cov.W.shrink(W)
 			A <- (cov.W+tcrossprod(W.mean))/var.A	
 		} else {
-			if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
-				it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
-				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl,p){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl,p=p)},W=W,n.qtl=n.qtl,p=freq.mat[1,],mc.cores=n.core))
+			if (n.core > 1) {
+			  cl <- makeCluster(n.core)
+			  clusterExport(cl=cl,varlist=NULL)
+			  it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
+			  
+			  delta <- unlist(parLapply(cl,X=it,
+			                    fun=function(ix,W,n.qtl,p){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl,p=p)},
+			                    W=W,n.qtl=n.qtl,p=freq.mat[1,]))
+			  stopCluster(cl)
 			} else {
 				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl,p=freq.mat[1,])
 			}
@@ -108,7 +116,7 @@ if (!missing) {
 	}
 } else {
     #impute
-    isna <- which(is.na(W)) 
+  isna <- which(is.na(W)) 
 	W[isna] <- 0
 	
 	if (toupper(impute.method)=="EM") {
@@ -122,17 +130,22 @@ if (!missing) {
 			} else {
 
 			#do EM algorithm
-		    W[isna] <- NA
+		  W[isna] <- NA
 			A.new <- (cov.mat.new + tcrossprod(mean.vec.new))/var.A
 			err <- tol+1
 			print("A.mat converging:")
+			if (n.core > 1) {
+			  cl <- makeCluster(n.core)
+			  clusterExport(cl=cl,varlist=NULL)
+			}
+			
 			while (err >= tol) {
 				A.old <- A.new
 				cov.mat.old <- cov.mat.new
 				mean.vec.old <- mean.vec.new
-				if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
+				if (n.core > 1) {
  					it <- split(1:m,factor(cut(1:m,n.core,labels=FALSE)))
-					pieces <- parallel::mclapply(it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)},mc.cores=n.core)
+					pieces <- parLapply(cl,it,function(mark2){impute.EM(W[,mark2],cov.mat.old,mean.vec.old)})
 				} else {
 					pieces <- list()
 					pieces[[1]] <- impute.EM(W,cov.mat.old,mean.vec.old)
@@ -152,7 +165,9 @@ if (!missing) {
 			}
 			rownames(A.new) <- rownames(X)
 			colnames(A.new) <- rownames(A.new)
-
+			if (n.core > 1)
+			  stopCluster(cl)
+			
 			if (return.imputed) {
 				Ximp <- W.imp - 1 + 2*freq.mat
 				colnames(Ximp) <- colnames(X)[markers]
@@ -172,9 +187,12 @@ if (!missing) {
 			cov.W <- cov.W.shrink(W)
 			A <- (cov.W+tcrossprod(W.mean))/var.A	
 		} else {
-			if ((n.core > 1) & requireNamespace("parallel",quietly=TRUE)) {
+			if (n.core > 1) {
+			  cl <- makeCluster(n.core)
+			  clusterExport(cl=cl,varlist=NULL)
 				it <- split(1:shrink.iter,factor(cut(1:shrink.iter,n.core,labels=FALSE)))
-				delta <- unlist(parallel::mclapply(it,function(ix,W,n.qtl){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl)},W=W,n.qtl=n.qtl,mc.cores=n.core))
+				delta <- unlist(parLapply(it,function(ix,W,n.qtl){apply(array(ix),1,shrink.coeff,W=W,n.qtl=n.qtl)},W=W,n.qtl=n.qtl))
+				stopCluster(cl)
 			} else {
 				delta <- apply(array(1:shrink.iter),1,shrink.coeff,W=W,n.qtl=n.qtl)
 			}

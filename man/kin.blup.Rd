@@ -80,7 +80,7 @@ If GAUSS = TRUE, the list also includes
 }
 
 \references{
-Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255. doi: 10.3835/plantgenome2011.08.0024
+Endelman, J.B. 2011. Ridge regression and other kernels for genomic selection with R package rrBLUP. Plant Genome 4:250-255. <doi:10.3835/plantgenome2011.08.0024>
 }
 
 \examples{

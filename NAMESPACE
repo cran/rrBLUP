@@ -1,6 +1,8 @@
+importFrom(parallel,clusterExport)
+importFrom(parallel,makeCluster)
+importFrom(parallel,parLapply)
+importFrom(parallel,stopCluster)
 importFrom("grDevices", "dev.cur", "dev.new", "dev.next", "dev.set")
 importFrom("graphics", "axis", "lines", "par", "points", "title")
 importFrom("stats", "cov", "dist", "median", "model.matrix", "optimize", "pbeta", "ppoints", "predict", "smooth.spline","var")
 export(mixed.solve,GWAS,kinship.BLUP,A.mat,kin.blup)
-
-

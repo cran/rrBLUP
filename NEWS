@@ -1,3 +1,6 @@
+Changes in 4.6.2:
+* Changed parallel execution in A.mat to use cluster instead of forking
+
 Changes in 4.6.1:
 * Updated code to address changes in behavior of "class" in base R
 
