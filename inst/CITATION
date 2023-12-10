@@ -1,6 +1,7 @@
 citHeader("To cite the rrBLUP package in publications use:")
 
-citEntry(entry="Article",
+bibentry(
+	bibtype="Article",
 	title="Ridge regression and other kernels for genomic selection with R package rrBLUP",
 	author=as.person("J. B. Endelman"),
 	journal="Plant Genome",
